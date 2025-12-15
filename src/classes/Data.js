@@ -216,149 +216,54 @@ export const levels = {
 		cats: cats2025, // Same cats, but they need to exist in the new GLB!
 		quotes: [
 			// ... ADD YOUR NEW 2025 QUOTES HERE ...
-			{ from: 'Orokro', text: 'Did you PAY for all that Taco Bell though?', force_first: true, },
-			{ from: 'Reli', text: 'Yo quiero Taco Bell' },
-			{ from: 'Community', text: 'New year new scuff' },
 			{
 				from: 'Orokro',
-				text: 'The scuff in this xMas gatcha is real',
-			},
+				text: 'Did you PAY for all that Taco Bell though?',
+				force_first: true, },
 			{
 				from: 'Orokro',
-				text: 'Last rizzmas I gave you my Gyatt. This rizzmas ILL FN DO IT AGAIN',
-			},
-			{
-				from: 'Cookie',
-				text: 'Meowy Christmas!',
-			},
-			{
-				from: 'Cookie',
-				text: 'Feed me mother!',
-			},
-			{
-				from: 'Orokro',
-				text: 'I herd u liek snow globes. Merry Crimmas!',
-			},
-			{
-				from: 'Don',
-				text: 'Imperial Units',
-			},
-			{
-				from: 'Don',
-				text: 'What the fuck is a kilometer',
-			},
-			{
-				from: 'Don',
-				text: '"I\'m just a little catboy" ~Reli in cosplay at AWA" - Lucina'
-			},
-			{
-				from: 'Araziel',
-				text: '"It\'s jiggling because it\'s a fake chest" Said by Reli',
-			},
-			{
-				from: 'Araziel',
-				text: '"I am 1.03125 Relis tall on a Tuesday” -Drewus Maximus',
-			},
-			{
-				from: 'Araziel',
-				text: '"Imagine being an alien residing in the land of horny measurements and not being allowed to be sekushii"',
-			},
-			{
-				from: 'Araziel',
-				text: 'Women love me, Fish fear me, Childe wants me',
-			},
-			{
-				from: 'Araziel',
-				text: 'Wow Aurelia encourages unsafe driving smh my head',
-			},
-			{
-				from: 'Araziel',
-				text: 'Assiopeia should be the NSFW tag',
-			},
-			{
-				from: 'Rennova',
-				text: 'I first followed you on Christmas day a year ago, and do not regret it. Thanks for this past year, Aurelia. Hope to get to know you more in the future.',
-			},
-			{
-				from: 'Rennova',
-				text: 'Have a cosmic Christmas!',
+				text: 'Let me teach you about the Earth tradition of The mistletoe',
 			},
 			{
 				from: 'Fiend',
-				text: 'Stopped binging alcohol to watch the Space Lady',
+				text: 'Merry Chrimbo space critter! Thanks for making a community of awesome people and giving us laughs. Everyday is Christmas with you around!',
 			},
 			{
-				from: 'Fiend',
-				text: 'The V-Moe girls distracted me long enough for the Dunkin Donuts employee I was holding at gun point to run away',
+				from: 'Pan',
+				text: 'No matter how hard your life is, stay alive.',
 			},
 			{
-				from: 'Lotus the Ghost',
-				text: 'Merry Christmas Reli! I hope you\'re able to reach your goals and have fun in the new year!',
+				from: 'Baku',
+				text: 'SPAAAAAAACCCCCCEEEEE',
 			},
 			{
-				from: 'Lotus the Ghost',
-				text: 'help i\'m stuck in a website',
+				from: 'Loto',
+				text: 'Big Bodacious Bonkers',
 			},
 			{
-				from: 'Zach M',
-				text: 'Happy Holidays Aurelia, I just wanted to use this opportunity to say thank you for being your: awesome, funny, lighthearted, sometimes lewd, always crazy, kind, incredible costume-making, amazing, self. I’m so glad to have discovered you, and look forward to giving you my continued support. Happy holidays!!! P.S. Don’t tell Allen, but you’re actually my number one favorite twerking alien.',
+				from: 'Loto',
+				text: 'IBARK BARK BARK BARK BARK 🧎‍♀️',
 			},
 			{
-				from: 'Zach M',
-				text: 'Aurelia, My last two brain cells were so busy competing for third place that they both came in fourth, trying to write this message; Anyways………..HERES TO CELEBRATING SOME HAPPY HOLIDAYS AND TO MANY MORE!!!!! 🍺',
+				from: 'Alba',
+				text: 'Results unclear, pull again later.',
 			},
 			{
-				from: 'Drewus Maximus',
-				text: 'MERRY CHRISTMAS TO OUR BESTEST IDOL ALIEN! Hope you have a nice holiday and all your dreams come true next year 💜',
+				from: 'Araziel',
+				text: 'Ant Queen sends her regards and hopes you\'ll go become her toy soon ♥'
 			},
 			{
-				from: 'Drewus Maximus',
-				text: 'Skibidi Reli in Fortnite',
+				from: 'Araziel',
+				text: 'I hope my favorite nighttime host has an 👍Umazing! holiday season and 2026. 💜gs',
 			},
 			{
-				from: 'Drewus Maximus',
-				text: 'cookie when she heard what Santa eats',
+				from: 'Q',
+				text: 'Feliz Navidad Reli~! You\'re an everlasting sunshine in this community and im so happy i can call you a friend. I can\'t wait to see how much further you go and what new things await next year~! <3',
 			},
 			{
-				from: 'Wooderson',
-				text: '“I love chicken katsu, on a bed of rice, that shit slaps my nuts." -Aurelia Cassiopeia, 2024',
+				from: 'Mar',
+				text: 'Merry Christmas! Wishing y\'all happy holidays and looking forward to all the fun we\'ll have in 2026! ☆*:;;;:*Ｍｅｒｒｙヽ(*ﾟ∀ﾟ)人(ﾟ∀ﾟ*)ﾉＸ’ｍａｓ*:;;;:*☆',
 			},
-			{
-				from: 'Wooderson',
-				text: 'Merry Christmas to the greatest space alien, idol, maid(failure)',
-			},
-			{
-				from: 'Abysmal',
-				text: 'Reliiiiii!! While I haven\'t been here long, it\'s been extremely entertaining watching you and your community grow. Anytime I catch you or a VOD I know I\'m in for a good laugh and a great time. Thanks for sharing that golden personality with us! ✌️😁 I\'ll always be wishing you the best!',
-			},
-			{
-				from: 'TomtheIronMan',
-				text: '“Oh man, I’m gonna be #FreakinIt” - every time playing RE2',
-			},
-			{
-				from: 'TomtheIronMan',
-				text: '"All my cards are ASS"',
-			},
-			{
-				from: 'ZbotZero',
-				text: 'I like porple',
-			},
-			{
-				from: 'ZbotZero',
-				text: '“She’s gonna cry happy again”',
-			},
-			{
-				from: 'ZbotZero',
-				text: 'We pulling out the big tears every time',
-			},
-			{
-				from: 'Lethia',
-				text: 'Dear Aurelia, THANK YOU FOR BEING SUCH A FANTASTIC GENMATE!!! You are so freaking talented, and I am floored by both the caliber of your content and how many talents you have. Singing? ✅  Sewing? ✅ Being V-Moe\'s lil freak? ✅ ✅ ✅  I could not imagine Moe-Kyun without you my dear alien. HERE\'S TO MORE SHENANIGANS YIPPEE!!!! 🥳 🥳',
-			},
-			{
-				from: 'Lethia',
-				text: 'What\'s an alien\'s favorite holiday treat? Hot cocoa with martian-mellows!!! 👽 ☕',
-			}
 		]
 	}
 };
