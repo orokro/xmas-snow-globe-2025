@@ -3,7 +3,7 @@
 	------------
 	A robust audio state machine.
 	Handles fading, track switching, volume, and muting.
-	Now supports Asymmetrical Transitions with smart interruption handling.
+	Fixed: Prevents "Zombie" tracks from triggering state changes during interruptions.
 */
 
 class BGMPlayer {
@@ -58,10 +58,20 @@ class BGMPlayer {
 	playGatchaTheme() {
 		if(!this.initialized) return;
 
+		// --- CRITICAL FIX ---
+		// If we interrupt a transition where Gatcha was playing (or fading out),
+		// we must STOP it immediately. If we don't, it might finish playing
+		// in the background, trigger 'onended', and call playBGM(),
+		// cancelling this new pull sequence.
+		this.gatcha.pause();
+		this.gatcha.currentTime = 0;
+		this.gatcha.onended = null; // Clear old triggers
+		// --------------------
+
 		// 1. Fade out BGM (1000ms)
 		this.fadeOut(this.bgm, 1000, () => {
 
-			// 2. Start Gatcha IMMEDIATELY at full volume (No fade in)
+			// 2. Start Gatcha IMMEDIATELY at full volume
 			this.gatcha.currentTime = 0;
 			this.gatcha.volume = this.isMuted ? 0 : this.masterVolume;
 			this.gatcha.play().catch(e => console.warn("Audio play blocked", e));
@@ -83,29 +93,27 @@ class BGMPlayer {
 
 	/**
 	 * Helper: Fades a single track out to 0, then pauses it.
-	 * FIX: Snapshots 'startVolume' so interruptions don't cause volume jumps.
+	 * SNAPSHOTS startVolume to allow smooth mid-fade reversals.
 	 */
 	fadeOut(track, duration, onComplete) {
 		if(this.fadeRaf) cancelAnimationFrame(this.fadeRaf);
 		this.isFading = true;
 		const startTime = performance.now();
 
-		// SNAPSHOT: Capture where the volume is RIGHT NOW.
-		// If we are half-faded (e.g. 0.3), we start fading down from 0.3, not 1.0.
+		// SNAPSHOT: Capture current volume.
+		// If BGM is fading in (e.g. at 0.4), we fade 0.4 -> 0 over the full duration.
 		const startVolume = track.volume;
 
 		const loop = (now) => {
 			const elapsed = now - startTime;
 			const progress = Math.max(0, Math.min(1, elapsed / duration));
 
-			// Linear Fade from StartVolume -> 0
-			// We ignore masterVolume updates here to ensure a smooth continuity from the snapshot.
+			// Linear Fade from Snapshot -> 0
 			track.volume = Math.max(0, startVolume * (1 - progress));
 
 			if (progress < 1) {
 				this.fadeRaf = requestAnimationFrame(loop);
 			} else {
-				// Done
 				this.isFading = false;
 				this.fadeRaf = null;
 				track.pause();
@@ -129,7 +137,6 @@ class BGMPlayer {
 			const progress = Math.max(0, Math.min(1, elapsed / duration));
 			const effectiveVolume = this.isMuted ? 0 : this.masterVolume;
 
-			// Crossfade Logic (Simulates "Wait for it" return nicely)
 			fadeOutTrack.volume = Math.max(0, (1 - progress) * effectiveVolume);
 			fadeInTrack.volume = Math.min(effectiveVolume, progress * effectiveVolume);
 
