@@ -3,7 +3,7 @@
 	------------
 	A robust audio state machine.
 	Handles fading, track switching, volume, and muting.
-	Now also handles one-shot SFX to ensure they obey volume settings.
+	Now supports Asymmetrical Transitions with smart interruption handling.
 */
 
 class BGMPlayer {
@@ -34,27 +34,43 @@ class BGMPlayer {
 		}, { once: true });
 	}
 
-	// ... [Keep playBGM, playGatchaTheme, setGatchaTrack, crossFade as they were] ...
-    // (Paste the previous working versions of these methods here)
-
+	/**
+	 * Main State: PLAY BGM
+	 * Smoothly crossfades back to BGM.
+	 */
 	playBGM() {
 		if(!this.initialized) return;
+
 		if (this.bgm.paused) {
 			this.bgm.volume = 0;
 			this.bgm.play().catch(e => console.warn("Audio play blocked", e));
 		}
+
+		// Smooth return: Crossfade over 1.5 seconds
 		this.crossFade(this.gatcha, this.bgm, 1500);
 	}
 
+	/**
+	 * Main State: PLAY GATCHA
+	 * 1. Fades out BGM completely.
+	 * 2. Then starts Gatcha at full volume (Hard Cut).
+	 */
 	playGatchaTheme() {
 		if(!this.initialized) return;
-		this.gatcha.currentTime = 0;
-		this.gatcha.volume = 0;
-		this.gatcha.play().catch(e => console.warn("Audio play blocked", e));
-		this.crossFade(this.bgm, this.gatcha, 200);
-		this.gatcha.onended = () => {
-			this.playBGM();
-		};
+
+		// 1. Fade out BGM (1000ms)
+		this.fadeOut(this.bgm, 1000, () => {
+
+			// 2. Start Gatcha IMMEDIATELY at full volume (No fade in)
+			this.gatcha.currentTime = 0;
+			this.gatcha.volume = this.isMuted ? 0 : this.masterVolume;
+			this.gatcha.play().catch(e => console.warn("Audio play blocked", e));
+
+			// 3. Queue the return trip
+			this.gatcha.onended = () => {
+				this.playBGM();
+			};
+		});
 	}
 
 	setGatchaTrack(url) {
@@ -65,6 +81,44 @@ class BGMPlayer {
 		if(wasPlaying) this.gatcha.play();
 	}
 
+	/**
+	 * Helper: Fades a single track out to 0, then pauses it.
+	 * FIX: Snapshots 'startVolume' so interruptions don't cause volume jumps.
+	 */
+	fadeOut(track, duration, onComplete) {
+		if(this.fadeRaf) cancelAnimationFrame(this.fadeRaf);
+		this.isFading = true;
+		const startTime = performance.now();
+
+		// SNAPSHOT: Capture where the volume is RIGHT NOW.
+		// If we are half-faded (e.g. 0.3), we start fading down from 0.3, not 1.0.
+		const startVolume = track.volume;
+
+		const loop = (now) => {
+			const elapsed = now - startTime;
+			const progress = Math.max(0, Math.min(1, elapsed / duration));
+
+			// Linear Fade from StartVolume -> 0
+			// We ignore masterVolume updates here to ensure a smooth continuity from the snapshot.
+			track.volume = Math.max(0, startVolume * (1 - progress));
+
+			if (progress < 1) {
+				this.fadeRaf = requestAnimationFrame(loop);
+			} else {
+				// Done
+				this.isFading = false;
+				this.fadeRaf = null;
+				track.pause();
+				track.currentTime = 0;
+				if(onComplete) onComplete();
+			}
+		};
+		this.fadeRaf = requestAnimationFrame(loop);
+	}
+
+	/**
+	 * Helper: Fades one track out while fading another in.
+	 */
 	crossFade(fadeOutTrack, fadeInTrack, duration) {
 		if(this.fadeRaf) cancelAnimationFrame(this.fadeRaf);
 		this.isFading = true;
@@ -75,6 +129,7 @@ class BGMPlayer {
 			const progress = Math.max(0, Math.min(1, elapsed / duration));
 			const effectiveVolume = this.isMuted ? 0 : this.masterVolume;
 
+			// Crossfade Logic (Simulates "Wait for it" return nicely)
 			fadeOutTrack.volume = Math.max(0, (1 - progress) * effectiveVolume);
 			fadeInTrack.volume = Math.min(effectiveVolume, progress * effectiveVolume);
 
@@ -107,21 +162,14 @@ class BGMPlayer {
 		if(!this.gatcha.paused) this.gatcha.volume = targetVol;
 	}
 
-	/**
-	 * NEW: Centralized SFX Player
-	 * Accepts either a string URL or an existing Audio object.
-	 */
 	playSFX(sound) {
-		if (this.isMuted) return; // Silent if muted
+		if (this.isMuted) return;
 
 		let audio = sound;
-
-		// If passed a string, create a temp audio object
 		if (typeof sound === 'string') {
 			audio = new Audio(sound);
 		}
 
-		// Reset and Play
 		audio.currentTime = 0;
 		audio.volume = this.masterVolume;
 		audio.play().catch(e => console.warn("SFX blocked", e));
