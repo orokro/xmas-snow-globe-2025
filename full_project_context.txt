@@ -803,6 +803,359 @@ File: src\classes\Data.js
 	will just be some JavaScript exports with the data for our game.
 */
 
+/*
+	Data.js
+	-------
+	Config for our different years/levels.
+*/
+
+// Shared list of cats (since you said they are the same 12)
+// NOTE: Ensure your new 2025 GLB uses these exact Object Names for the cats!
+const cats2024 = [
+	{ name: 'Cookie', icon: '2024/01_cookie.png', object: 'Cookie' },
+	{ name: 'Front', icon: '2024/12_front.png', object: 'FrontKitteh' },
+	{ name: 'Chimney', icon: '2024/02_chimney.png', object: 'ChimneyKitteh' },
+	{ name: 'Trash', icon: '2024/03_trash.png', object: 'TrashKitteh' },
+	{ name: 'Fence', icon: '2024/04_fence.png', object: 'FenceKitteh' },
+	{ name: 'Window', icon: '2024/05_window.png', object: 'WindowKitteh' },
+	{ name: 'Ladder', icon: '2024/06_ladder.png', object: 'LadderKitteh' },
+	{ name: 'Truck', icon: '2024/07_truck.png', object: 'TruckKitteh' },
+	{ name: 'Front Door', icon: '2024/08_front_door.png', object: 'FrontDoorKitteh' },
+	{ name: 'Upper Tree Kitteh', icon: '2024/09_tree_upper.png', object: 'TopTreeKitteh' },
+	{ name: 'Under Tree Kitteh', icon: '2024/10_tree_lower.png', object: 'UnderTreeKitteh' },
+	{ name: 'Mailbox', icon: '2024/11_mailbox.png', object: 'MailKitteh' },
+];
+
+const cats2025 = [
+	{ name: 'Cookie', icon: '2025/01_cookie.png', object: 'Cookie' },
+	{ name: 'Bushes', icon: '2025/02_bushes.png', object: 'FrontKitteh' },
+	{ name: 'Vents', icon: '2025/03_vents.png', object: 'ChimneyKitteh' },
+	{ name: 'Trash', icon: '2025/04_trash.png', object: 'TrashKitteh' },
+	{ name: 'Employee', icon: '2025/05_employee.png', object: 'FenceKitteh' },
+	{ name: 'Front', icon: '2025/06_front.png', object: 'WindowKitteh' },
+	{ name: 'Dumpster', icon: '2025/07_dumpster.png', object: 'LadderKitteh' },
+	{ name: 'Car', icon: '2025/08_car.png', object: 'TruckKitteh' },
+	{ name: 'Tractor Beam', icon: '2025/09_tractor.png', object: 'FrontDoorKitteh' },
+	{ name: 'Lounge', icon: '2025/10_lounge.png', object: 'TopTreeKitteh' },
+	{ name: 'Menu', icon: '2025/11_menu.png', object: 'UnderTreeKitteh' },
+	{ name: 'Trash 2', icon: '2025/12_trash2.png', object: 'MailKitteh' }
+];
+
+export const levels = {
+	'2024': {
+		year: '2024',
+		model: 'snow_globe_scene_2024.glb', // The original model
+		pullMusic: 'zbot_gatcha.mp3', // Original pull music
+		background: {
+			gradient: 'linear-gradient(180deg, #4E2A77 0%, #1A1A3A 100%)', // Purple
+			image: 'reli_xmas_bg_pattern.png', // Original pattern
+			color: '#4E2A77'
+		},
+		cats: cats2024,
+		quotes: [
+			{
+				from: 'Orokro',
+				text: 'The scuff in this xMas gatcha is real',
+			},
+			{
+				from: 'Orokro',
+				text: 'Last rizzmas I gave you my Gyatt. This rizzmas ILL FN DO IT AGAIN',
+			},
+			{
+				from: 'Cookie',
+				text: 'Meowy Christmas!',
+			},
+			{
+				from: 'Cookie',
+				text: 'Feed me mother!',
+			},
+			{
+				from: 'Orokro',
+				text: 'I herd u liek snow globes. Merry Crimmas!',
+				force_first: true,
+			},
+			{
+				from: 'Don',
+				text: 'Imperial Units',
+			},
+			{
+				from: 'Don',
+				text: 'What the fuck is a kilometer',
+			},
+			{
+				from: 'Don',
+				text: '"I\'m just a little catboy" ~Reli in cosplay at AWA" - Lucina'
+			},
+			{
+				from: 'Araziel',
+				text: '"It\'s jiggling because it\'s a fake chest" Said by Reli',
+			},
+			{
+				from: 'Araziel',
+				text: '"I am 1.03125 Relis tall on a Tuesday” -Drewus Maximus',
+			},
+			{
+				from: 'Araziel',
+				text: '"Imagine being an alien residing in the land of horny measurements and not being allowed to be sekushii"',
+			},
+			{
+				from: 'Araziel',
+				text: 'Women love me, Fish fear me, Childe wants me',
+			},
+			{
+				from: 'Araziel',
+				text: 'Wow Aurelia encourages unsafe driving smh my head',
+			},
+			{
+				from: 'Araziel',
+				text: 'Assiopeia should be the NSFW tag',
+			},
+			{
+				from: 'Rennova',
+				text: 'I first followed you on Christmas day a year ago, and do not regret it. Thanks for this past year, Aurelia. Hope to get to know you more in the future.',
+			},
+			{
+				from: 'Rennova',
+				text: 'Have a cosmic Christmas!',
+			},
+			{
+				from: 'Fiend',
+				text: 'Stopped binging alcohol to watch the Space Lady',
+			},
+			{
+				from: 'Fiend',
+				text: 'The V-Moe girls distracted me long enough for the Dunkin Donuts employee I was holding at gun point to run away',
+			},
+			{
+				from: 'Lotus the Ghost',
+				text: 'Merry Christmas Reli! I hope you\'re able to reach your goals and have fun in the new year!',
+			},
+			{
+				from: 'Lotus the Ghost',
+				text: 'help i\'m stuck in a website',
+			},
+			{
+				from: 'Zach M',
+				text: 'Happy Holidays Aurelia, I just wanted to use this opportunity to say thank you for being your: awesome, funny, lighthearted, sometimes lewd, always crazy, kind, incredible costume-making, amazing, self. I’m so glad to have discovered you, and look forward to giving you my continued support. Happy holidays!!! P.S. Don’t tell Allen, but you’re actually my number one favorite twerking alien.',
+			},
+			{
+				from: 'Zach M',
+				text: 'Aurelia, My last two brain cells were so busy competing for third place that they both came in fourth, trying to write this message; Anyways………..HERES TO CELEBRATING SOME HAPPY HOLIDAYS AND TO MANY MORE!!!!! 🍺',
+			},
+			{
+				from: 'Drewus Maximus',
+				text: 'MERRY CHRISTMAS TO OUR BESTEST IDOL ALIEN! Hope you have a nice holiday and all your dreams come true next year 💜',
+			},
+			{
+				from: 'Drewus Maximus',
+				text: 'Skibidi Reli in Fortnite',
+			},
+			{
+				from: 'Drewus Maximus',
+				text: 'cookie when she heard what Santa eats',
+			},
+			{
+				from: 'Wooderson',
+				text: '“I love chicken katsu, on a bed of rice, that shit slaps my nuts." -Aurelia Cassiopeia, 2024',
+			},
+			{
+				from: 'Wooderson',
+				text: 'Merry Christmas to the greatest space alien, idol, maid(failure)',
+			},
+			{
+				from: 'Abysmal',
+				text: 'Reliiiiii!! While I haven\'t been here long, it\'s been extremely entertaining watching you and your community grow. Anytime I catch you or a VOD I know I\'m in for a good laugh and a great time. Thanks for sharing that golden personality with us! ✌️😁 I\'ll always be wishing you the best!',
+			},
+			{
+				from: 'TomtheIronMan',
+				text: '“Oh man, I’m gonna be #FreakinIt” - every time playing RE2',
+			},
+			{
+				from: 'TomtheIronMan',
+				text: '"All my cards are ASS"',
+			},
+			{
+				from: 'ZbotZero',
+				text: 'I like porple',
+			},
+			{
+				from: 'ZbotZero',
+				text: '“She’s gonna cry happy again”',
+			},
+			{
+				from: 'ZbotZero',
+				text: 'We pulling out the big tears every time',
+			},
+			{
+				from: 'Lethia',
+				text: 'Dear Aurelia, THANK YOU FOR BEING SUCH A FANTASTIC GENMATE!!! You are so freaking talented, and I am floored by both the caliber of your content and how many talents you have. Singing? ✅  Sewing? ✅ Being V-Moe\'s lil freak? ✅ ✅ ✅  I could not imagine Moe-Kyun without you my dear alien. HERE\'S TO MORE SHENANIGANS YIPPEE!!!! 🥳 🥳',
+			},
+			{
+				from: 'Lethia',
+				text: 'What\'s an alien\'s favorite holiday treat? Hot cocoa with martian-mellows!!! 👽 ☕',
+			}
+		]
+	},
+
+	'2025': {
+		year: '2025',
+		model: 'snow_globe_scene_2025.glb',
+		pullMusic: 'zbot_gatcha_2025.mp3',
+		background: {
+			gradient: 'linear-gradient(180deg, #D35400 0%, #5D2303 100%)', // Orange/Brown
+			image: 'reli_xmas_bg_pattern.png',
+			color: '#D35400'
+		},
+		cats: cats2025, // Same cats, but they need to exist in the new GLB!
+		quotes: [
+			// ... ADD YOUR NEW 2025 QUOTES HERE ...
+			{ from: 'Reli', text: 'Yo quiero Taco Bell', force_first: true, },
+			{ from: 'Community', text: 'New year new scuff' },
+			{
+				from: 'Orokro',
+				text: 'The scuff in this xMas gatcha is real',
+			},
+			{
+				from: 'Orokro',
+				text: 'Last rizzmas I gave you my Gyatt. This rizzmas ILL FN DO IT AGAIN',
+			},
+			{
+				from: 'Cookie',
+				text: 'Meowy Christmas!',
+			},
+			{
+				from: 'Cookie',
+				text: 'Feed me mother!',
+			},
+			{
+				from: 'Orokro',
+				text: 'I herd u liek snow globes. Merry Crimmas!',
+			},
+			{
+				from: 'Don',
+				text: 'Imperial Units',
+			},
+			{
+				from: 'Don',
+				text: 'What the fuck is a kilometer',
+			},
+			{
+				from: 'Don',
+				text: '"I\'m just a little catboy" ~Reli in cosplay at AWA" - Lucina'
+			},
+			{
+				from: 'Araziel',
+				text: '"It\'s jiggling because it\'s a fake chest" Said by Reli',
+			},
+			{
+				from: 'Araziel',
+				text: '"I am 1.03125 Relis tall on a Tuesday” -Drewus Maximus',
+			},
+			{
+				from: 'Araziel',
+				text: '"Imagine being an alien residing in the land of horny measurements and not being allowed to be sekushii"',
+			},
+			{
+				from: 'Araziel',
+				text: 'Women love me, Fish fear me, Childe wants me',
+			},
+			{
+				from: 'Araziel',
+				text: 'Wow Aurelia encourages unsafe driving smh my head',
+			},
+			{
+				from: 'Araziel',
+				text: 'Assiopeia should be the NSFW tag',
+			},
+			{
+				from: 'Rennova',
+				text: 'I first followed you on Christmas day a year ago, and do not regret it. Thanks for this past year, Aurelia. Hope to get to know you more in the future.',
+			},
+			{
+				from: 'Rennova',
+				text: 'Have a cosmic Christmas!',
+			},
+			{
+				from: 'Fiend',
+				text: 'Stopped binging alcohol to watch the Space Lady',
+			},
+			{
+				from: 'Fiend',
+				text: 'The V-Moe girls distracted me long enough for the Dunkin Donuts employee I was holding at gun point to run away',
+			},
+			{
+				from: 'Lotus the Ghost',
+				text: 'Merry Christmas Reli! I hope you\'re able to reach your goals and have fun in the new year!',
+			},
+			{
+				from: 'Lotus the Ghost',
+				text: 'help i\'m stuck in a website',
+			},
+			{
+				from: 'Zach M',
+				text: 'Happy Holidays Aurelia, I just wanted to use this opportunity to say thank you for being your: awesome, funny, lighthearted, sometimes lewd, always crazy, kind, incredible costume-making, amazing, self. I’m so glad to have discovered you, and look forward to giving you my continued support. Happy holidays!!! P.S. Don’t tell Allen, but you’re actually my number one favorite twerking alien.',
+			},
+			{
+				from: 'Zach M',
+				text: 'Aurelia, My last two brain cells were so busy competing for third place that they both came in fourth, trying to write this message; Anyways………..HERES TO CELEBRATING SOME HAPPY HOLIDAYS AND TO MANY MORE!!!!! 🍺',
+			},
+			{
+				from: 'Drewus Maximus',
+				text: 'MERRY CHRISTMAS TO OUR BESTEST IDOL ALIEN! Hope you have a nice holiday and all your dreams come true next year 💜',
+			},
+			{
+				from: 'Drewus Maximus',
+				text: 'Skibidi Reli in Fortnite',
+			},
+			{
+				from: 'Drewus Maximus',
+				text: 'cookie when she heard what Santa eats',
+			},
+			{
+				from: 'Wooderson',
+				text: '“I love chicken katsu, on a bed of rice, that shit slaps my nuts." -Aurelia Cassiopeia, 2024',
+			},
+			{
+				from: 'Wooderson',
+				text: 'Merry Christmas to the greatest space alien, idol, maid(failure)',
+			},
+			{
+				from: 'Abysmal',
+				text: 'Reliiiiii!! While I haven\'t been here long, it\'s been extremely entertaining watching you and your community grow. Anytime I catch you or a VOD I know I\'m in for a good laugh and a great time. Thanks for sharing that golden personality with us! ✌️😁 I\'ll always be wishing you the best!',
+			},
+			{
+				from: 'TomtheIronMan',
+				text: '“Oh man, I’m gonna be #FreakinIt” - every time playing RE2',
+			},
+			{
+				from: 'TomtheIronMan',
+				text: '"All my cards are ASS"',
+			},
+			{
+				from: 'ZbotZero',
+				text: 'I like porple',
+			},
+			{
+				from: 'ZbotZero',
+				text: '“She’s gonna cry happy again”',
+			},
+			{
+				from: 'ZbotZero',
+				text: 'We pulling out the big tears every time',
+			},
+			{
+				from: 'Lethia',
+				text: 'Dear Aurelia, THANK YOU FOR BEING SUCH A FANTASTIC GENMATE!!! You are so freaking talented, and I am floored by both the caliber of your content and how many talents you have. Singing? ✅  Sewing? ✅ Being V-Moe\'s lil freak? ✅ ✅ ✅  I could not imagine Moe-Kyun without you my dear alien. HERE\'S TO MORE SHENANIGANS YIPPEE!!!! 🥳 🥳',
+			},
+			{
+				from: 'Lethia',
+				text: 'What\'s an alien\'s favorite holiday treat? Hot cocoa with martian-mellows!!! 👽 ☕',
+			}
+		]
+	}
+};
+
+
 // the list of cats, including their 3D object names
 export const cats = [
 	{
@@ -1028,7 +1381,7 @@ File: src\classes\Game.js
 */
 
 // vue
-import { ref, shallowRef } from 'vue';
+import { ref, shallowRef, computed } from 'vue';
 
 // app imports
 import ThreeScene from './ThreeScene';
@@ -1039,7 +1392,7 @@ import CapsuleAnimator from './CapsuleAnimator';
 import PullCameraAnimator from './PullCameraAnimator';
 
 // import our data
-import { cats, gatchaQuotes } from './Data';
+import { cats, gatchaQuotes, levels } from './Data';
 
 // main export
 export class Game {
@@ -1064,7 +1417,7 @@ export class Game {
 	 * @param {ModalManager} modalManager - reference to the ModalManager
 	 * @param {BGMPlayer} bgmPlayer - reference to the BGMPlayer
 	 */
-	constructor(scene, toastManager, modalManager, bgmPlayer){
+	constructor(scene, toastManager, modalManager, bgmPlayer) {
 
 		// save our scene & state managers
 		this.scene = scene;
@@ -1117,20 +1470,113 @@ export class Game {
 		// the picked quote
 		this.pickedQuote = shallowRef(null);
 
-		// initialize our game
-		this.initGame();
+		// // initialize our game
+		// this.initGame();
 
-		// wait for our scene to be ready before we start the game
-		scene.ifOrWhenSceneIsReady(() => {
-			this.beginGame();
-		});
+		// // wait for our scene to be ready before we start the game
+		// scene.ifOrWhenSceneIsReady(() => {
+		// 	this.beginGame();
+		// });
+
+		// New State for Levels
+		this.currentLevelKey = ref('2025'); // Default to this year
+		this.currentLevelData = computed(() => levels[this.currentLevelKey.value]); // Helper
+
+		this.isTransitioning = ref(false); // To trigger the UI overlay
+
+		// Load initial level
+		this.loadLevel(this.currentLevelKey.value);
+	}
+
+
+	/**
+	 * Loads a specific level's model and sets up the scene
+	 */
+	async loadLevel(yearKey) {
+
+		// 1. Determine if this is the very first load or a switch
+		// If we haven't unlocked gatcha yet (and haven't found cats), it's likely the first load.
+		// Or strictly: if we are currently in LOADING mode.
+		const isFirstLoad = this.mode.value === Game.MODE.LOADING;
+
+		this.currentLevelKey.value = yearKey;
+		const levelData = levels[yearKey];
+
+		// 2. Update BGM Player pull track
+		if (this.bgmPlayer && levelData.pullMusic) {
+			this.bgmPlayer.gatchaTheme = new Audio(`assets/sfx/${levelData.pullMusic}`);
+		}
+
+		// 3. Init Game Data (Found cats logic)
+		this.initGameData(levelData);
+
+		// 4. Tell Scene to Load Model (Await this!)
+		await this.scene.loadLevel(levelData.model);
+
+		// 5. Start Game Loop
+		// Pass 'true' to skip unboxing if this is NOT the first load
+		this.beginGame(!isFirstLoad);
+	}
+
+
+	/**
+	 * Called by UI to switch levels
+	 */
+	switchLevel(targetYear) {
+		if (this.isTransitioning.value) return;
+		if (targetYear === this.currentLevelKey.value) return;
+
+		this.isTransitioning.value = true;
+
+		// Wait for the "Expand" animation to cover the screen (approx 1s)
+		// In Game.js switchLevel:
+		setTimeout(async () => {
+
+			// Load the new stuff
+			await this.loadLevel(targetYear);
+
+			// Small buffer to ensure rendering is ready
+			setTimeout(() => {
+				// CRITICAL: This allows mouse clicks to reach the scene again
+				this.isTransitioning.value = false;
+			}, 500);
+
+		}, 1000);
+	}
+
+
+	initGameData(levelData) {
+		// Reset counters
+		this.foundCats.value = levelData.cats.map((cat, i) => ({
+			...cat,
+			id: `cat_${i}`,
+			found: false,
+		}));
+
+		// Reset quotes
+		let quotes = levelData.quotes.map((quote, i) => ({
+			...quote,
+			id: `quote_${i}`,
+			found: false,
+		}));
+		quotes = quotes.sort(() => Math.random() - 0.5);
+		this.gatchaQuotesSeen.value = quotes;
+
+		// Reset flags
+		this.allCatsFound.value = false;
+		this.allGatchaQuotesFound.value = false;
+		this.catsMenuCount.value = 0;
+		this.gatchaMenuCount.value = 0;
+		this.gatchaPulls.value = 0;
+		this.gatchaUnlocked.value = false;
+		this.doingPull.value = false;
 	}
 
 
 	/**
 	 * This function will initialize the game and also reset the game if we want to play again.
 	 */
-	initGame(){
+	initGame() {
 
 		// copy our raw data & add the "found" property
 		this.foundCats.value = cats.map((cat, i) => {
@@ -1170,7 +1616,7 @@ export class Game {
 	 *
 	 * @param {Audio} sound - one of the Audio objects we built in the constructor
 	 */
-	playSound(sound){
+	playSound(sound) {
 
 		// reset the sound and play it
 		sound.currentTime = 0;
@@ -1179,67 +1625,95 @@ export class Game {
 
 
 	/**
-	 * This function will start the game
+	 * Sets up the game state after the scene is loaded.
+	 * @param {Boolean} skipUnboxing - If true, jumps straight to playing.
 	 */
-	beginGame(){
+	beginGame(skipUnboxing = false) {
 
-		// begin unpacking the snow globe
-		this.mode.value = Game.MODE.UNPACKING;
+		// --- COMMON SETUP (Must happen every level load) ---
 
-		//show first modal w/ sound
-		this.playSound(this.heySound);
-		this.modalManager.showModal('Click the present to unwrap it!', 'Hey You!', () => {
+		// 1. Re-initialize the Cat Raycaster
+		// (We must do this because the cat meshes are new objects now)
+		this.buildKittehRaycaster();
+
+		// 2. Re-initialize Animators
+		// (The camera and capsule objects might be new, or just good safety)
+		this.pullCameraAnimator = new PullCameraAnimator(
+			this.scene.pullCamera,
+			this.scene.$('.f_targ'),
+			2, 0.75, 1.2
+		);
+
+		this.capsuleAnimator = new CapsuleAnimator(
+			this.scene.$('#Capsule').children,
+			this.scene,
+			() => { }
+		);
+
+		// --- BRANCHING LOGIC ---
+
+		if (skipUnboxing) {
+			// == PATH A: LEVEL SWITCH (Instant Play) ==
+
+			console.log("Skipping Unboxing - Instant Play");
+
+			this.mode.value = Game.MODE.PLAYING;
+
+			// Hide the gift box immediately
+			const giftBox = this.scene.$('#GiftBox');
+			if (giftBox) giftBox.visible = false;
+
+			// Stir particles to make it look alive
+			if (this.scene.particleSystem) {
+				this.scene.particleSystem.stirUpParticles(0.5);
+			}
+
+		} else {
+			// == PATH B: FIRST LAUNCH (Unboxing Sequence) ==
+
+			console.log("First Load - Unboxing Sequence");
+
 			this.mode.value = Game.MODE.UNPACKING;
 
-			// enable for debug (skip unpacking for now)
-			// this.mode.value = Game.MODE.PLAYING;
-			// this.scene.$('#GiftBox').visible = false;
-		});
+			// Ensure present is visible
+			const giftBox = this.scene.$('#GiftBox');
+			if (giftBox) {
+				giftBox.visible = true;
 
-		// set up a raycaster looking for our cats
-		setTimeout(()=>{
+				// Create the Unboxing Logic
+				// We pass a callback for what happens when unboxing finishes
+				this.presentUnboxing = new PresentUnboxing(giftBox.children, this.scene, () => {
 
-			// get the present object from the scene & make sure present is visible
-			const presentObjs = this.scene.$('#GiftBox').children;
-			this.scene.$('#GiftBox').visible = true;
+					// --- UNBOXING COMPLETE CALLBACK ---
+					this.mode.value = Game.MODE.PLAYING;
+					this.scene.particleSystem.stirUpParticles(.2);
+					giftBox.visible = false;
 
-			// make a new PresentUnboxing object
-			this.presentUnboxing = new PresentUnboxing(presentObjs, this.scene, () => {
-
-				// set play mode
-				this.mode.value = Game.MODE.PLAYING;
-
-				// mix up the particles a bit
-				this.scene.particleSystem.stirUpParticles(.2);
-
-				// hide the present parts
-				this.scene.$('#GiftBox').visible = false;
-
-				//show kitteh modal
-				this.playSound(this.heySound);
-				this.modalManager.showModal('Find some hidden kitties!', 'Hey You!', () => {
-
+					this.playSound(this.heySound);
+					this.modalManager.showModal('Find some hidden kitties!', 'Hey You!');
 				});
+			} else {
+				console.error("Critical Error: #GiftBox not found in GLB!");
+			}
 
-			});
-
-			// build the raycaster to find cats
-			this.buildKittehRaycaster();
-
-			// build a camera animator for when we do gatcha pulls later on
-			this.pullCameraAnimator = new PullCameraAnimator(this.scene.pullCamera, this.scene.$('.f_targ'), 2, 0.75, 1.2);
-
-			// build a capsule animator for when we do gatcha pulls later on
-			this.capsuleAnimator = new CapsuleAnimator(this.scene.$('#Capsule').children, this.scene, () => {});
-
-		}, 500);
+			// Show the first modal to prompt the user
+			this.playSound(this.heySound);
+			this.modalManager.showModal('Click the present to unwrap it!', 'Hey You!');
+		}
 	}
 
 
 	/**
 	 * Build a ray caster that responds to hidden kittehs
 	 */
-	buildKittehRaycaster(){
+	buildKittehRaycaster() {
+
+		// Destroy old one if it exists to stop duplicate clicks
+		if(this.catRaycaster) {
+			this.catRaycaster.destroy();
+		}
+
+		this.catRaycaster = new RaycasterManager(this.scene);
 
 		// this will be a new RaycasterManager that will look for our cats
 		this.catRaycaster = new RaycasterManager(this.scene);
@@ -1251,33 +1725,33 @@ export class Game {
 		this.catRaycaster.setFilter(filter);
 
 		// wait for hits on cats
-		this.catRaycaster.onHit((hit)=>{
+		this.catRaycaster.onHit((hit) => {
 
 			// if we're not in playing mode, GTFO
-			if(this.mode.value !== Game.MODE.PLAYING)
+			if (this.mode.value !== Game.MODE.PLAYING)
 				return;
 
 			// our hit object might have userData.name with a #catName,
 			// or it might be a child of a cat object
 			// so recursively find the cat object's name
 			let catObjectName = hit.object.userData.name;
-			while(!catObjectName){
+			while (!catObjectName) {
 				hit.object = hit.object.parent;
 				catObjectName = hit.object.userData.name;
 
 				// escape if we have no parent
-				if(!hit.object.parent)
+				if (!hit.object.parent)
 					break;
 			}// wend
 
 			// if we found a cat, call the findCat function
-			if(catObjectName){
+			if (catObjectName) {
 
 				// the name might be a raw string, but it might also look like "#catName .class1 .class2"
 				catObjectName = catObjectName.split(' ')[0].replace('#', '').toLowerCase();
 
 				// make sure this is in our list of cats from the imported data
-				if(cats.find(cat => cat.object.toLowerCase() === catObjectName))
+				if (cats.find(cat => cat.object.toLowerCase() === catObjectName))
 					this.findCat(catObjectName);
 			}
 		});
@@ -1290,35 +1764,35 @@ export class Game {
 	 *
 	 * @param {Number} menu - one of the Game.MENU constants
 	 */
-	showMenu(menu){
+	showMenu(menu) {
 
 		// play the woosh sound for menus
 		this.playSound(this.woosh);
 
 		// if cats menu is open and we're trying to open it again, close it
-		if(menu === Game.MENU.CATS && this.catsMenuOpen.value){
+		if (menu === Game.MENU.CATS && this.catsMenuOpen.value) {
 			this.catsMenuOpen.value = false;
 			return;
 		}
 
 		// if gatcha menu is open and we're trying to open it again, close it
-		if(menu === Game.MENU.GATCHA && this.gatchaMenuOpen.value){
+		if (menu === Game.MENU.GATCHA && this.gatchaMenuOpen.value) {
 			this.gatchaMenuOpen.value = false;
 			return;
 		}
 
 		// if either menu is open, close both
-		if(this.catsMenuOpen.value || this.gatchaMenuOpen.value){
+		if (this.catsMenuOpen.value || this.gatchaMenuOpen.value) {
 			this.catsMenuOpen.value = false;
 			this.gatchaMenuOpen.value = false;
 		}
 
 		// open the requested menu
-		if(menu === Game.MENU.CATS){
+		if (menu === Game.MENU.CATS) {
 			this.catsMenuOpen.value = true;
 			this.catsMenuCount.value = 0;
 		}
-		else if(menu === Game.MENU.GATCHA){
+		else if (menu === Game.MENU.GATCHA) {
 			this.gatchaMenuOpen.value = true;
 			this.gatchaMenuCount.value = 0;
 		}
@@ -1330,7 +1804,7 @@ export class Game {
 	 *
 	 * @param {String} catObjectName - the name of the cat object in the scene
 	 */
-	findCat(catObjectName){
+	findCat(catObjectName) {
 
 		// the name might be a raw string, but it might also look like "#catName .class1 .class2"
 		// so we need to process it if a hash is present
@@ -1343,7 +1817,7 @@ export class Game {
 		const foundCat = foundCats.find(cat => cat.object.toLowerCase() === catObjectName);
 
 		// if it was already found, ignore it
-		if(foundCat.found)
+		if (foundCat.found)
 			return;
 
 		// mark the cat as found
@@ -1357,7 +1831,7 @@ export class Game {
 		this.allCatsFound.value = foundCats.every(cat => cat.found);
 
 		// if the cats menu is closed, increment its bubble counter
-		if(this.catsMenuOpen.value === false)
+		if (this.catsMenuOpen.value === false)
 			this.catsMenuCount.value++;
 
 		// in the public folder /assets/sfx/ there's a meow.mp3 file
@@ -1376,14 +1850,14 @@ export class Game {
 			- so, when the player finds the last cat, we'll give them enough pulls to get all the quotes
 		*/
 		const totalQuotes = gatchaQuotes.length;
-		let pullsToAdd = Math.floor(totalQuotes/12);
+		let pullsToAdd = Math.floor(totalQuotes / 12);
 		this.gatchaPulls.value += pullsToAdd;
 
 		// gatcha always unlocked if at least one cat found
 		this.gatchaUnlocked.value = true;
 
 		// if we found all the cats, show the modal
-		if(this.allCatsFound.value){
+		if (this.allCatsFound.value) {
 			this.playSound(this.yaySound);
 			this.modalManager.showModal('You found all the kittehs!', 'Congratulations!');
 
@@ -1395,7 +1869,7 @@ export class Game {
 			pullsToAdd = unseenQuotes.length - this.gatchaPulls.value;
 
 			// if we have more unseen quotes than pulls, give the player enough pulls to get them all
-			if(unseenQuotes.length > this.gatchaPulls.value)
+			if (unseenQuotes.length > this.gatchaPulls.value)
 				this.gatchaPulls.value = unseenQuotes.length;
 		}
 
@@ -1403,7 +1877,7 @@ export class Game {
 		this.toastManager.showToastMsg(`You found ${foundCat.name} Kitteh!`, `+${pullsToAdd} Gatcha Pulls!`);
 
 		// if we found all the quotes, clear pulls
-		if(this.allGatchaQuotesFound.value){
+		if (this.allGatchaQuotesFound.value) {
 			this.gatchaPulls.value = 0;
 		}
 	}
@@ -1412,14 +1886,14 @@ export class Game {
 	/**
 	 * Starts gatcha pull animate sequence
 	 */
-	doPull(){
+	doPull() {
 
 		// gtfo if no pulls
-		if(this.gatchaPulls.value < 1)
+		if (this.gatchaPulls.value < 1)
 			return;
 
 		// if we're already doing a pull, ignore
-		if(this.doingPull.value)
+		if (this.doingPull.value)
 			return;
 
 		// play the gatcha woosh sound
@@ -1432,17 +1906,17 @@ export class Game {
 		this.doingPull.value = true;
 
 		// play the gatcha theme in a short time
-		setTimeout(()=>{
+		setTimeout(() => {
 			this.bgmPlayer.playGatchaTheme();
 		}, 750);
 
 		// hide the UI after 1 second
-		setTimeout(()=>{
+		setTimeout(() => {
 			this.hideUI.value = true;
 		}, 1000);
 
 		// wait for our CSS curtain animation to finish before we continue
-		setTimeout(()=>{
+		setTimeout(() => {
 
 			// start the pull camera animation
 			this.doingPullCameraAnimation.value = true;
@@ -1472,7 +1946,7 @@ export class Game {
 	/**
 	 * Picks a random quote from the gatchaQuotesSeen array
 	 */
-	pickRandomQuote(){
+	pickRandomQuote() {
 
 		// so we want to pick the quote that has force_first set true if we haven't seen it yet
 		// otherwise, pick a random one we haven't seen yet
@@ -1482,13 +1956,13 @@ export class Game {
 		let quote = quotes.find(quote => quote.force_first && !quote.found);
 
 		// if we didn't find one, pick a random one, make sure its a random not just the next available one
-		if(!quote){
+		if (!quote) {
 			const unseenQuotes = quotes.filter(quote => !quote.found);
 			quote = unseenQuotes[Math.floor(Math.random() * unseenQuotes.length)];
 		}
 
 
-		if(quote){
+		if (quote) {
 			quote.found = true;
 			this.gatchaQuotesSeen.value = [];
 			this.gatchaQuotesSeen.value = quotes;
@@ -1496,14 +1970,14 @@ export class Game {
 			this.pickedQuote.value = quote;
 
 			// if the gatcha menu is closed, increment its bubble counter
-			if(this.gatchaMenuOpen.value === false)
+			if (this.gatchaMenuOpen.value === false)
 				this.gatchaMenuCount.value++;
 
 			// check if we found all the quotes
 			this.allGatchaQuotesFound.value = quotes.every(quote => quote.found);
 
 			// if so, zero out the pulls
-			if(this.allGatchaQuotesFound.value){
+			if (this.allGatchaQuotesFound.value) {
 				this.playSound(this.yaySound);
 				this.modalManager.showModal('You found all the quotes!', 'Congratulations!');
 				this.gatchaPulls.value = 0;
@@ -1516,7 +1990,7 @@ export class Game {
 	/**
 	 * Completes the gatcha pull sequence & closes the UI / resets variables
 	 */
-	completePull(){
+	completePull() {
 
 		this.capsuleAnimator.resetAnimations();
 		this.doingPull.value = false;
@@ -2141,7 +2615,7 @@ class RaycasterManager {
 	/**
 	 * When our ThreeScene is ready we can save these variables locally
 	 */
-	onReady(){
+	onReady() {
 
 		// save our scene, camera, renderer & container
 		this.scene = this.threeScene.scene;
@@ -2195,7 +2669,7 @@ class RaycasterManager {
 	 *
 	 * @param {THREE.Object3D} baseObject - the ThreeJS object
 	 */
-	setBaseFilter(baseObject){
+	setBaseFilter(baseObject) {
 		this.baseFilter = baseObject;
 	}
 
@@ -2231,6 +2705,14 @@ class RaycasterManager {
 		} else {
 			throw new Error('Callback must be a function.');
 		}
+	}
+
+	// Add this method
+	destroy() {
+		if (this.container) {
+			this.container.removeEventListener('click', this.onClick);
+		}
+		this.listeners = [];
 	}
 
 }
@@ -2483,12 +2965,86 @@ export default class ThreeScene {
 		// which camera to use
 		this.cameraToUse = null;
 
+		// Initialize the base scene (renderer, lights, etc) ONCE
+		this.initBaseScene();
+
 		// build our ThreeJS scene (this is async b/c stuffs have to load)
-		this.buildThreeScene();
+		// this.buildThreeScene();
 
 		// start the animation loop
-		this.animate();
+		// this.animate();
 
+	}
+
+
+	async initBaseScene() {
+		// Create Scene, Renderer, Cameras, Lights once
+		this.scene = new THREE.Scene();
+		this.renderer = new THREE.WebGLRenderer({ alpha: true });
+		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.setClearColor(0x000000, 0);
+
+		// Cameras
+		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		const initialZoomScale = 0.75;
+		this.camera.position.z = 10 * initialZoomScale;
+		this.camera.position.y = 7 * initialZoomScale;
+		this.cameraToUse = this.camera;
+
+		this.pullCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		this.pullCamera.position.z = 10;
+		this.pullCamera.position.y = 7;
+
+		this.capsuleCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		this.capsuleCamera.position.z = 5;
+		this.capsuleCamera.position.y = 0;
+
+		// Controls
+		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+		this.controls.target.set(0, 0, 0);
+		this.controls.update();
+
+		// Environment & Lights
+		await this.loadReflectionMap();
+		this.setUpLights();
+
+		// Start loop
+		this.animate();
+	}
+
+
+	/**
+	 * Loads a specific level's model and sets up the scene
+	 */
+	async loadLevel(modelFileName) {
+		this.isReady = false;
+
+		// 1. Cleanup existing level assets
+		if (this.gltfScene) {
+			this.scene.remove(this.gltfScene.scene);
+			// Optional: Dispose of geometries/materials here if you want to be strict about memory
+		}
+		if (this.particleSystem) {
+			this.scene.remove(this.particleSystem);
+			this.particleSystem = null;
+		}
+		this.sceneObjectsByID.clear();
+		this.sceneObjectsByClass.clear();
+
+		// 2. Load new GLTF
+		const gltfLoader = new GLTFLoader();
+		this.gltfScene = await new Promise((resolve, reject) => {
+			gltfLoader.load(`assets/models/${modelFileName}`, resolve, undefined, reject);
+		});
+		this.scene.add(this.gltfScene.scene);
+
+		// 3. Re-parse and setup
+		this.parseSceneObjects();
+		this.applyMaterialTweaks(); // Ensure your new model uses the same material names!
+		this.buildParticleSystem();
+
+		// 4. Mark ready
+		this.setSceneReady();
 	}
 
 
@@ -3030,7 +3586,7 @@ File: src\components\BackgroundLayers.vue
 	<div class="bgLayers">
 
 		<!-- base layer will be a gradient, we'll mix a pattern on later -->
-		<div class="gradientLayer"></div>
+		<div class="gradientLayer" :style="{ background: bgConfig.gradient }"></div>
 
 		<!-- this layer will use CSS-blending mix-modes to blend a texture over the gradient -->
 		<div class="imageLayer"></div>
@@ -3055,6 +3611,7 @@ import { ref, onMounted, computed } from 'vue';
 
 // app
 import { Game } from '../classes/Game';
+import { levels } from '../classes/Data';
 
 // define some props
 const props = defineProps({
@@ -3062,6 +3619,12 @@ const props = defineProps({
 	// reference to our current game state
 	gameState: Object
 
+});
+
+// Get current background config
+const bgConfig = computed(() => {
+	const key = props.gameState.currentLevelKey.value;
+	return levels[key].background;
 });
 
 // computed method to see if we should show the black fade
@@ -3089,12 +3652,12 @@ const shouldShowBlackFade = computed(() => {
 		// the purple gradient
 		.gradientLayer {
 
-			// fill parent with purple gradient
+			/* // fill parent with purple gradient
 			position: absolute;
 			inset: 0px 0px 0px 0px;
 
 			// purple gradient
-			background: linear-gradient(180deg, #4E2A77 0%, #1A1A3A 100%);
+			background: linear-gradient(180deg, #4E2A77 0%, #1A1A3A 100%); */
 
 		}// .gradientLayer
 
@@ -3441,6 +4004,24 @@ File: src\components\GameUILayer.vue
 		<!-- if we're not hiding the UI -->
 		<div v-show="shouldShowUI">
 
+			<div
+				v-if="gameState.currentLevelKey.value === '2025'"
+				class="navArrow left"
+				@click="gameState.switchLevel('2024')"
+			>
+				<div class="triangle"></div>
+				<span>2024</span>
+			</div>
+
+			<div
+				v-if="gameState.currentLevelKey.value === '2024'"
+				class="navArrow right"
+				@click="gameState.switchLevel('2025')"
+			>
+				<div class="triangle"></div>
+				<span>2025</span>
+			</div>
+
 			<!-- our two menus -->
 			<CatsMenu
 				:isOpen="gameState.catsMenuOpen.value"
@@ -3473,6 +4054,12 @@ File: src\components\GameUILayer.vue
 
 		</div>
 
+		<LevelTransition
+			:active="gameState.isTransitioning.value"
+			:direction="gameState.currentLevelKey.value === '2025' ? 'left' : 'right'"
+			:targetYear="gameState.currentLevelKey.value === '2025' ? '2024' : '2025'"
+		/>
+
 		<!-- layer that animates for beginning of pull -->
 		<GatchaPullOverlay v-if="gameState.doingPull.value"  :gameState="gameState" />
 
@@ -3491,6 +4078,7 @@ import GatchaMenu from './GatchaMenu.vue';
 import GatchaButton from './GatchaButton.vue';
 import GatchaPullOverlay from './GatchaPullOverlay.vue';
 import ControlsPanel from './ControlsPanel.vue';
+import LevelTransition from './LevelTransition.vue';
 
 // app
 import { Game } from '../classes/Game';
@@ -3551,6 +4139,42 @@ function toggleGatchaMenu() {
 		}
 
 	}// .gameUILayer
+
+	.navArrow {
+		position: fixed;
+		top: 50%;
+		transform: translateY(-50%);
+		cursor: pointer;
+		z-index: 100;
+
+		border: 20px solid red;
+		&:hover { transform: translateY(-50%) scale(1.1); }
+
+		&.left { left: 20px; }
+		&.right { right: 20px; }
+
+		// Quick CSS triangles
+		.triangle {
+			width: 0;
+			height: 0;
+			border-top: 20px solid transparent;
+			border-bottom: 20px solid transparent;
+			border: 20px solid red;
+		}
+		&.left .triangle { border-right: 30px solid white; }
+		&.right .triangle { border-left: 30px solid white; }
+
+		span {
+			display: block;
+			color: white;
+			font-weight: bold;
+			text-align: center;
+			margin-top: 5px;
+			text-shadow: 0 0 5px black;
+		}
+
+	}// .navArrow
+
 
 </style>
 
@@ -4394,6 +5018,125 @@ const iconSettings = computed(() => {
 
 </style>
 
+
+================================================================================
+File: src\components\LevelTransition.vue
+================================================================================
+<template>
+	<div
+		class="levelTransition"
+		:class="{
+			'active': active,
+			'goLeft': direction === 'left',
+			'goRight': direction === 'right'
+		}"
+	>
+		<div class="transitionShape">
+			<div class="content">
+				<div class="year">{{ targetYear }}</div>
+				<div class="loading">Loading...</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script setup>
+import { computed } from 'vue';
+
+const props = defineProps({
+	active: Boolean,
+	direction: String, // 'left' or 'right'
+	targetYear: String
+});
+</script>
+
+<style lang="scss" scoped>
+.levelTransition {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 9999;
+	overflow: hidden;
+
+	// The shape (Triangle initially)
+	.transitionShape {
+		position: absolute;
+		top: 50%;
+		width: 100px;
+		height: 100px;
+		background: #fff;
+		transition: all 1s ease-in-out;
+
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		// Initial State: Small Triangle on the side
+		transform: translateY(-50%) scale(1);
+
+		// Text
+		.content {
+			color: #000;
+			font-weight: bold;
+			font-size: 20px;
+			text-align: center;
+			opacity: 0; // Hide text initially until expanded?
+                        // Or show Year initially, then swap to loading.
+		}
+		.year { display: block; }
+		.loading { display: none; }
+	}
+
+	// Logic for Left Arrow (Going BACK to 2024)
+	&.goLeft .transitionShape {
+		left: 0;
+		// CSS Triangle pointing left
+		clip-path: polygon(100% 0, 0 50%, 100% 100%);
+	}
+
+	// Logic for Right Arrow (Going FWD to 2025)
+	&.goRight .transitionShape {
+		right: 0;
+		// CSS Triangle pointing right
+		clip-path: polygon(0 0, 100% 50%, 0 100%);
+	}
+
+	// THE EXPANSION STATE
+	&.active {
+		pointer-events: all;
+
+		.transitionShape {
+			// Expand to cover screen
+			width: 250vmax; // Giant size
+			height: 250vmax;
+
+			// Center it
+			// For right arrow, we need to move it left to cover
+			// For left arrow, move it right
+
+			clip-path: circle(100% at 50% 50%); // Morph to circle
+            transform: translateY(-50%) scale(1); // Reset scale reliance
+
+            // Override positioning to center the massive circle
+            left: 50% !important;
+            right: auto !important;
+            transform: translate(-50%, -50%);
+		}
+
+		.content {
+			opacity: 1;
+			font-size: 5vw;
+		}
+
+		.year { display: none; }
+		.loading { display: block; animation: blink 1s infinite; }
+	}
+}
+
+@keyframes blink {
+	50% { opacity: 0.5; }
+}
+</style>
 
 ================================================================================
 File: src\components\MenuIcon.vue

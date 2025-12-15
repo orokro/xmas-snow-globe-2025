@@ -40,12 +40,86 @@ export default class ThreeScene {
 		// which camera to use
 		this.cameraToUse = null;
 
+		// Initialize the base scene (renderer, lights, etc) ONCE
+		this.initBaseScene();
+
 		// build our ThreeJS scene (this is async b/c stuffs have to load)
-		this.buildThreeScene();
+		// this.buildThreeScene();
 
 		// start the animation loop
-		this.animate();
+		// this.animate();
 
+	}
+
+
+	async initBaseScene() {
+		// Create Scene, Renderer, Cameras, Lights once
+		this.scene = new THREE.Scene();
+		this.renderer = new THREE.WebGLRenderer({ alpha: true });
+		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.setClearColor(0x000000, 0);
+
+		// Cameras
+		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		const initialZoomScale = 0.75;
+		this.camera.position.z = 10 * initialZoomScale;
+		this.camera.position.y = 7 * initialZoomScale;
+		this.cameraToUse = this.camera;
+
+		this.pullCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		this.pullCamera.position.z = 10;
+		this.pullCamera.position.y = 7;
+
+		this.capsuleCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		this.capsuleCamera.position.z = 5;
+		this.capsuleCamera.position.y = 0;
+
+		// Controls
+		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+		this.controls.target.set(0, 0, 0);
+		this.controls.update();
+
+		// Environment & Lights
+		await this.loadReflectionMap();
+		this.setUpLights();
+
+		// Start loop
+		this.animate();
+	}
+
+
+	/**
+	 * Loads a specific level's model and sets up the scene
+	 */
+	async loadLevel(modelFileName) {
+		this.isReady = false;
+
+		// 1. Cleanup existing level assets
+		if (this.gltfScene) {
+			this.scene.remove(this.gltfScene.scene);
+			// Optional: Dispose of geometries/materials here if you want to be strict about memory
+		}
+		if (this.particleSystem) {
+			this.scene.remove(this.particleSystem);
+			this.particleSystem = null;
+		}
+		this.sceneObjectsByID.clear();
+		this.sceneObjectsByClass.clear();
+
+		// 2. Load new GLTF
+		const gltfLoader = new GLTFLoader();
+		this.gltfScene = await new Promise((resolve, reject) => {
+			gltfLoader.load(`assets/models/${modelFileName}`, resolve, undefined, reject);
+		});
+		this.scene.add(this.gltfScene.scene);
+
+		// 3. Re-parse and setup
+		this.parseSceneObjects();
+		this.applyMaterialTweaks(); // Ensure your new model uses the same material names!
+		this.buildParticleSystem();
+
+		// 4. Mark ready
+		this.setSceneReady();
 	}
 
 

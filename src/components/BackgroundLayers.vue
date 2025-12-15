@@ -11,7 +11,7 @@
 	<div class="bgLayers">
 
 		<!-- base layer will be a gradient, we'll mix a pattern on later -->
-		<div class="gradientLayer"></div>
+		<div class="gradientLayer" :style="{ background: bgConfig.gradient }"></div>
 
 		<!-- this layer will use CSS-blending mix-modes to blend a texture over the gradient -->
 		<div class="imageLayer"></div>
@@ -36,6 +36,7 @@ import { ref, onMounted, computed } from 'vue';
 
 // app
 import { Game } from '../classes/Game';
+import { levels } from '../classes/Data';
 
 // define some props
 const props = defineProps({
@@ -43,6 +44,12 @@ const props = defineProps({
 	// reference to our current game state
 	gameState: Object
 
+});
+
+// Get current background config
+const bgConfig = computed(() => {
+	const key = props.gameState.currentLevelKey.value;
+	return levels[key].background;
 });
 
 // computed method to see if we should show the black fade

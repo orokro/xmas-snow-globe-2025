@@ -46,7 +46,7 @@ class RaycasterManager {
 	/**
 	 * When our ThreeScene is ready we can save these variables locally
 	 */
-	onReady(){
+	onReady() {
 
 		// save our scene, camera, renderer & container
 		this.scene = this.threeScene.scene;
@@ -100,7 +100,7 @@ class RaycasterManager {
 	 *
 	 * @param {THREE.Object3D} baseObject - the ThreeJS object
 	 */
-	setBaseFilter(baseObject){
+	setBaseFilter(baseObject) {
 		this.baseFilter = baseObject;
 	}
 
@@ -136,6 +136,14 @@ class RaycasterManager {
 		} else {
 			throw new Error('Callback must be a function.');
 		}
+	}
+
+	// Add this method
+	destroy() {
+		if (this.container) {
+			this.container.removeEventListener('click', this.onClick);
+		}
+		this.listeners = [];
 	}
 
 }
