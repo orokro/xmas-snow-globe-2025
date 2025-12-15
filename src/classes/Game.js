@@ -107,7 +107,7 @@ export class Game {
 
 		// New State for Levels
 		this.currentLevelKey = ref('2025'); // Default to this year
-		this.currentLevelData = computed(() => levels[this.currentLevelKey.value]); // Helper
+		this.currentLevelData = computed(() => levels[this.currentLevelKey.value]);
 
 		this.isTransitioning = ref(false); // To trigger the UI overlay
 
@@ -268,7 +268,8 @@ export class Game {
 		this.pullCameraAnimator = new PullCameraAnimator(
 			this.scene.pullCamera,
 			this.scene.$('.f_targ'),
-			2, 0.75, 1.2
+			levels[this.currentLevelKey.value].pullCount,
+			0.75, 1.2
 		);
 
 		this.capsuleAnimator = new CapsuleAnimator(

@@ -54,6 +54,7 @@ export const levels = {
 			image: 'reli_xmas_bg_pattern.png', // Original pattern
 			color: '#4E2A77'
 		},
+		pullCount: 2,
 		cats: cats2024,
 		quotes: [
 			{
@@ -209,6 +210,7 @@ export const levels = {
 			image: 'reli_xmas_bg_pattern.png',
 			color: '#D35400'
 		},
+		pullCount: 10,
 		cats: cats2025, // Same cats, but they need to exist in the new GLB!
 		quotes: [
 			// ... ADD YOUR NEW 2025 QUOTES HERE ...
