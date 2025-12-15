@@ -1,22 +1,21 @@
 <template>
-
 	<div class="gameUILayer">
 
 		<div v-show="shouldShowUI">
 
 			<div
-				v-if="gameState.currentLevelKey?.value === '2025'"
+				v-if="gameState.currentLevelKey?.value == '2025'"
 				class="navArrow left"
-				@click="gameState.switchLevel('2024')"
+				@click="handleSwitch('2024')"
 			>
 				<div class="triangle"></div>
 				<span>2024</span>
 			</div>
 
 			<div
-				v-if="gameState.currentLevelKey?.value === '2024'"
+				v-if="gameState.currentLevelKey?.value == '2024'"
 				class="navArrow right"
-				@click="gameState.switchLevel('2025')"
+				@click="handleSwitch('2025')"
 			>
 				<div class="triangle"></div>
 				<span>2025</span>
@@ -45,7 +44,6 @@
 			/>
 
 			<ControlsPanel :modalManager="gameState.modalManager" />
-
 			<GatchaButton :gameState="gameState"/>
 
 		</div>
@@ -53,8 +51,8 @@
 		<LevelTransition
 			v-if="shouldShowTransition"
 			:active="gameState.isTransitioning?.value || false"
-			:direction="gameState.currentLevelKey?.value === '2025' ? 'left' : 'right'"
-			:targetYear="gameState.currentLevelKey?.value === '2025' ? '2024' : '2025'"
+			:direction="transitionTarget == '2024' ? 'left' : 'right'"
+			:targetYear="transitionTarget"
 		/>
 
 		<GatchaPullOverlay v-if="gameState.doingPull.value" :gameState="gameState" />
@@ -63,9 +61,7 @@
 
 </template>
 <script setup>
-
-// vue
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 // components
 import MenuIcon from './MenuIcon.vue';
@@ -74,18 +70,24 @@ import GatchaMenu from './GatchaMenu.vue';
 import GatchaButton from './GatchaButton.vue';
 import GatchaPullOverlay from './GatchaPullOverlay.vue';
 import ControlsPanel from './ControlsPanel.vue';
-import LevelTransition from './LevelTransition.vue'; // Ensure this file exists!
+import LevelTransition from './LevelTransition.vue';
 
 // app
 import { Game } from '../classes/Game';
 
-// define some props
 const props = defineProps({
 	scene: Object,
 	gameState: Object
 });
 
-// computed method to see if UI Icons should be on screen
+// === STATE ===
+
+// This holds the "Snapshot" of where we are going,
+// so the UI doesn't flip when the level loads in the background.
+const transitionTarget = ref('');
+
+// === COMPUTED ===
+
 const shouldShowUI = computed(() => {
 	if (!props.gameState) return false;
 	const UIIsNotHidden = !props.gameState.hideUI.value;
@@ -93,18 +95,26 @@ const shouldShowUI = computed(() => {
 	return UIIsNotHidden && gameModeIsPlaying;
 });
 
-// Computed to control the LevelTransition visibility
-// Computed to control the LevelTransition visibility
 const shouldShowTransition = computed(() => {
 	if (!props.gameState) return false;
-
-	// Safety check
-	if (!props.gameState.isTransitioning) return false;
-
-	// STRICT FIX: Only show this layer if we are ACTIVELY transitioning.
-	// We do NOT show it during 'PLAYING' because the navArrow buttons handle the UI then.
-	return props.gameState.isTransitioning.value;
+	// Strictly show only when transitioning
+	return props.gameState.isTransitioning?.value === true;
 });
+
+// === METHODS ===
+
+/**
+ * Handles the click event for level switching.
+ * Snapshots the target year BEFORE telling the game to switch.
+ */
+function handleSwitch(year) {
+	// 1. Lock in the visual target
+	transitionTarget.value = year;
+
+	// 2. Trigger the game logic (which will eventually change currentLevelKey)
+	props.gameState.switchLevel(year);
+}
+
 function toggleCatsMenu() {
 	props.gameState.showMenu(Game.MENU.CATS);
 }
@@ -112,17 +122,15 @@ function toggleCatsMenu() {
 function toggleGatchaMenu() {
 	props.gameState.showMenu(Game.MENU.GATCHA);
 }
-
 </script>
+
 <style lang="scss" scoped>
 
-	// fill screen space
 	.gameUILayer {
 		position: fixed;
 		inset: 0px 0px 0px 0px;
-		pointer-events: none; // Let clicks pass through to 3D scene
+		pointer-events: none;
 
-		// but allow them for children (buttons/menus)
 		& > * {
 			pointer-events: initial;
 		}
@@ -135,13 +143,14 @@ function toggleGatchaMenu() {
 		cursor: pointer;
 		z-index: 100;
 
+
 		&:hover { transform: translateY(-50%) scale(1.1); }
 
 		&.left { left: 20px; }
 		&.right { right: 20px; }
 
-		// Quick CSS triangles
 		.triangle {
+
 			width: 0;
 			height: 0;
 			border-top: 20px solid transparent;

@@ -851,6 +851,7 @@ export const levels = {
 			image: 'reli_xmas_bg_pattern.png', // Original pattern
 			color: '#4E2A77'
 		},
+		pullCount: 2,
 		cats: cats2024,
 		quotes: [
 			{
@@ -1002,10 +1003,11 @@ export const levels = {
 		model: 'snow_globe_scene_2025.glb',
 		pullMusic: 'zbot_gatcha_2025.mp3',
 		background: {
-			gradient: 'linear-gradient(180deg, #D35400 0%, #5D2303 100%)', // Orange/Brown
+			gradient: 'linear-gradient(180deg,rgb(184, 236, 63) 0%,rgb(8, 56, 22) 100%)', // Orange/Brown
 			image: 'reli_xmas_bg_pattern.png',
 			color: '#D35400'
 		},
+		pullCount: 10,
 		cats: cats2025, // Same cats, but they need to exist in the new GLB!
 		quotes: [
 			// ... ADD YOUR NEW 2025 QUOTES HERE ...
@@ -1480,7 +1482,7 @@ export class Game {
 
 		// New State for Levels
 		this.currentLevelKey = ref('2025'); // Default to this year
-		this.currentLevelData = computed(() => levels[this.currentLevelKey.value]); // Helper
+		this.currentLevelData = computed(() => levels[this.currentLevelKey.value]);
 
 		this.isTransitioning = ref(false); // To trigger the UI overlay
 
@@ -1641,7 +1643,8 @@ export class Game {
 		this.pullCameraAnimator = new PullCameraAnimator(
 			this.scene.pullCamera,
 			this.scene.$('.f_targ'),
-			2, 0.75, 1.2
+			levels[this.currentLevelKey.value].pullCount,
+			0.75, 1.2
 		);
 
 		this.capsuleAnimator = new CapsuleAnimator(
@@ -3652,12 +3655,12 @@ const shouldShowBlackFade = computed(() => {
 		// the purple gradient
 		.gradientLayer {
 
-			/* // fill parent with purple gradient
+			// fill parent with purple gradient
 			position: absolute;
 			inset: 0px 0px 0px 0px;
 
 			// purple gradient
-			background: linear-gradient(180deg, #4E2A77 0%, #1A1A3A 100%); */
+			background: linear-gradient(180deg, #4E2A77 0%, #1A1A3A 100%);
 
 		}// .gradientLayer
 
@@ -3990,39 +3993,29 @@ const showCredits = () => {
 ================================================================================
 File: src\components\GameUILayer.vue
 ================================================================================
-<!--
-	GameUILayer.vue
-	---------------
-
-	This file hosts the UI elements for the game play modes.
--->
 <template>
-
-	<!-- main layer wrapper -->
 	<div class="gameUILayer">
 
-		<!-- if we're not hiding the UI -->
 		<div v-show="shouldShowUI">
 
 			<div
-				v-if="gameState.currentLevelKey.value === '2025'"
+				v-if="gameState.currentLevelKey?.value == '2025'"
 				class="navArrow left"
-				@click="gameState.switchLevel('2024')"
+				@click="handleSwitch('2024')"
 			>
 				<div class="triangle"></div>
 				<span>2024</span>
 			</div>
 
 			<div
-				v-if="gameState.currentLevelKey.value === '2024'"
+				v-if="gameState.currentLevelKey?.value == '2024'"
 				class="navArrow right"
-				@click="gameState.switchLevel('2025')"
+				@click="handleSwitch('2025')"
 			>
 				<div class="triangle"></div>
 				<span>2025</span>
 			</div>
 
-			<!-- our two menus -->
 			<CatsMenu
 				:isOpen="gameState.catsMenuOpen.value"
 				:gameState="gameState"
@@ -4032,7 +4025,6 @@ File: src\components\GameUILayer.vue
 				:gameState="gameState"
 			/>
 
-			<!-- our two icons  -->
 			<MenuIcon
 				:icon="`cat_menu_icon`"
 				:left="30"
@@ -4046,30 +4038,25 @@ File: src\components\GameUILayer.vue
 				@click="toggleGatchaMenu"
 			/>
 
-			<!-- our controls panel -->
 			<ControlsPanel :modalManager="gameState.modalManager" />
-
-			<!-- gatcha pull button -->
 			<GatchaButton :gameState="gameState"/>
 
 		</div>
 
 		<LevelTransition
-			:active="gameState.isTransitioning.value"
-			:direction="gameState.currentLevelKey.value === '2025' ? 'left' : 'right'"
-			:targetYear="gameState.currentLevelKey.value === '2025' ? '2024' : '2025'"
+			v-if="shouldShowTransition"
+			:active="gameState.isTransitioning?.value || false"
+			:direction="transitionTarget == '2024' ? 'left' : 'right'"
+			:targetYear="transitionTarget"
 		/>
 
-		<!-- layer that animates for beginning of pull -->
-		<GatchaPullOverlay v-if="gameState.doingPull.value"  :gameState="gameState" />
+		<GatchaPullOverlay v-if="gameState.doingPull.value" :gameState="gameState" />
 
 	</div>
 
 </template>
 <script setup>
-
-// vue
-import { ref, onMounted, computed } from 'vue';
+import { computed, ref } from 'vue';
 
 // components
 import MenuIcon from './MenuIcon.vue';
@@ -4083,62 +4070,66 @@ import LevelTransition from './LevelTransition.vue';
 // app
 import { Game } from '../classes/Game';
 
-// define some props
 const props = defineProps({
-
-	// our threeJS scene
 	scene: Object,
-
-	// reference to our current game state
 	gameState: Object
-
 });
 
+// === STATE ===
 
-// computed method to see if UI Icons should be on screen
+// This holds the "Snapshot" of where we are going,
+// so the UI doesn't flip when the level loads in the background.
+const transitionTarget = ref('');
+
+// === COMPUTED ===
+
 const shouldShowUI = computed(() => {
-
+	if (!props.gameState) return false;
 	const UIIsNotHidden = !props.gameState.hideUI.value;
 	const gameModeIsPlaying = props.gameState.mode.value === Game.MODE.PLAYING;
-
 	return UIIsNotHidden && gameModeIsPlaying;
 });
 
+const shouldShowTransition = computed(() => {
+	if (!props.gameState) return false;
+	// Strictly show only when transitioning
+	return props.gameState.isTransitioning?.value === true;
+});
+
+// === METHODS ===
 
 /**
- * Toggles the cats menu.
+ * Handles the click event for level switching.
+ * Snapshots the target year BEFORE telling the game to switch.
  */
+function handleSwitch(year) {
+	// 1. Lock in the visual target
+	transitionTarget.value = year;
+
+	// 2. Trigger the game logic (which will eventually change currentLevelKey)
+	props.gameState.switchLevel(year);
+}
+
 function toggleCatsMenu() {
 	props.gameState.showMenu(Game.MENU.CATS);
 }
 
-
-/**
- * Toggles the gatcha menu.
- */
 function toggleGatchaMenu() {
 	props.gameState.showMenu(Game.MENU.GATCHA);
 }
-
 </script>
+
 <style lang="scss" scoped>
 
-	// fill screen space
 	.gameUILayer {
-
-		// fill screen space
 		position: fixed;
 		inset: 0px 0px 0px 0px;
-
-		// don't allow pointer events for the main layer
 		pointer-events: none;
 
-		// but allow them for children
 		& > * {
 			pointer-events: initial;
 		}
-
-	}// .gameUILayer
+	}
 
 	.navArrow {
 		position: fixed;
@@ -4147,19 +4138,18 @@ function toggleGatchaMenu() {
 		cursor: pointer;
 		z-index: 100;
 
-		border: 20px solid red;
+
 		&:hover { transform: translateY(-50%) scale(1.1); }
 
 		&.left { left: 20px; }
 		&.right { right: 20px; }
 
-		// Quick CSS triangles
 		.triangle {
+
 			width: 0;
 			height: 0;
 			border-top: 20px solid transparent;
 			border-bottom: 20px solid transparent;
-			border: 20px solid red;
 		}
 		&.left .triangle { border-right: 30px solid white; }
 		&.right .triangle { border-left: 30px solid white; }
@@ -4172,12 +4162,8 @@ function toggleGatchaMenu() {
 			margin-top: 5px;
 			text-shadow: 0 0 5px black;
 		}
-
-	}// .navArrow
-
-
+	}
 </style>
-
 
 ================================================================================
 File: src\components\GatchaButton.vue
@@ -5031,10 +5017,16 @@ File: src\components\LevelTransition.vue
 			'goRight': direction === 'right'
 		}"
 	>
-		<div class="transitionShape">
+		<div class="transitionShape" :style="themeStyle">
+
 			<div class="content">
-				<div class="year">{{ targetYear }}</div>
-				<div class="loading">Loading...</div>
+
+				<div class="snowflake">❄</div>
+
+				<div class="loadingText">
+					Traveling to {{ targetYear }}...
+				</div>
+
 			</div>
 		</div>
 	</div>
@@ -5048,6 +5040,23 @@ const props = defineProps({
 	direction: String, // 'left' or 'right'
 	targetYear: String
 });
+
+// Calculate the background style based on the target year
+const themeStyle = computed(() => {
+	if (props.targetYear === '2025') {
+		// Warm Orange/Red Gradient for 2025
+		return {
+			background: 'radial-gradient(circle, rgb(184, 236, 63) 0%,rgb(8, 56, 22) 100%)',
+			boxShadow: '0 0 50px #ff8e42' // Internal glow effect
+		};
+	} else {
+		// Deep Purple/Blue Gradient for 2024
+		return {
+			background: 'radial-gradient(circle, #a16eff 0%, #2f105e 100%)',
+			boxShadow: '0 0 50px #a16eff'
+		};
+	}
+});
 </script>
 
 <style lang="scss" scoped>
@@ -5058,83 +5067,93 @@ const props = defineProps({
 	z-index: 9999;
 	overflow: hidden;
 
-	// The shape (Triangle initially)
+	// The expanding portal shape
 	.transitionShape {
 		position: absolute;
 		top: 50%;
+
+		// Start small (button size)
 		width: 100px;
 		height: 100px;
-		background: #fff;
-		transition: all 1s ease-in-out;
+
+		// Smooth animation for the expansion
+		transition: all 1.0s cubic-bezier(0.68, -0.55, 0.27, 1.55); // Bouncy easing
 
 		display: flex;
+		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 
-		// Initial State: Small Triangle on the side
 		transform: translateY(-50%) scale(1);
 
-		// Text
+		// Hide content initially
 		.content {
-			color: #000;
-			font-weight: bold;
-			font-size: 20px;
+			opacity: 0;
+			transition: opacity 0.3s ease;
 			text-align: center;
-			opacity: 0; // Hide text initially until expanded?
-                        // Or show Year initially, then swap to loading.
+			color: white;
 		}
-		.year { display: block; }
-		.loading { display: none; }
 	}
 
-	// Logic for Left Arrow (Going BACK to 2024)
+	// === LEFT ARROW STATE (Go to 2024) ===
 	&.goLeft .transitionShape {
-		left: 0;
-		// CSS Triangle pointing left
+		left: 20px;
+		// Triangle pointing Left
 		clip-path: polygon(100% 0, 0 50%, 100% 100%);
 	}
 
-	// Logic for Right Arrow (Going FWD to 2025)
+	// === RIGHT ARROW STATE (Go to 2025) ===
 	&.goRight .transitionShape {
-		right: 0;
-		// CSS Triangle pointing right
+		right: 20px;
+		// Triangle pointing Right
 		clip-path: polygon(0 0, 100% 50%, 0 100%);
 	}
 
-	// THE EXPANSION STATE
+	// === ACTIVE EXPANDED STATE ===
 	&.active {
 		pointer-events: all;
 
 		.transitionShape {
-			// Expand to cover screen
-			width: 250vmax; // Giant size
+			// Expand to cover the whole screen massively
+			width: 250vmax;
 			height: 250vmax;
 
-			// Center it
-			// For right arrow, we need to move it left to cover
-			// For left arrow, move it right
+			// Morph into a circle (The Portal)
+			clip-path: circle(100% at 50% 50%);
 
-			clip-path: circle(100% at 50% 50%); // Morph to circle
-            transform: translateY(-50%) scale(1); // Reset scale reliance
-
-            // Override positioning to center the massive circle
+            // Force Center screen
             left: 50% !important;
             right: auto !important;
             transform: translate(-50%, -50%);
 		}
 
+		// Reveal content once expanded
 		.content {
 			opacity: 1;
-			font-size: 5vw;
+			// Delay showing text slightly so it pops in after expansion
+			transition-delay: 0.4s;
 		}
 
-		.year { display: none; }
-		.loading { display: block; animation: blink 1s infinite; }
+		.snowflake {
+			font-size: 80px;
+			margin-bottom: 20px;
+			animation: spin 3s linear infinite;
+			text-shadow: 0 0 10px rgba(255,255,255,0.5);
+		}
+
+		.loadingText {
+			font-family: 'Dancing Script', cursive; // Use your fancy font
+			font-size: 40px;
+			font-weight: bold;
+			text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+		}
 	}
 }
 
-@keyframes blink {
-	50% { opacity: 0.5; }
+// Simple spin animation for the snowflake
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
 }
 </style>
 

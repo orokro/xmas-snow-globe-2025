@@ -206,7 +206,7 @@ export const levels = {
 		model: 'snow_globe_scene_2025.glb',
 		pullMusic: 'zbot_gatcha_2025.mp3',
 		background: {
-			gradient: 'linear-gradient(180deg, #D35400 0%, #5D2303 100%)', // Orange/Brown
+			gradient: 'linear-gradient(180deg,rgb(184, 236, 63) 0%,rgb(8, 56, 22) 100%)', // Orange/Brown
 			image: 'reli_xmas_bg_pattern.png',
 			color: '#D35400'
 		},
