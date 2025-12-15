@@ -131,7 +131,7 @@ export class Game {
 
 		// 2. Update BGM Player pull track
 		if (this.bgmPlayer && levelData.pullMusic) {
-			this.bgmPlayer.gatchaTheme = new Audio(`assets/sfx/${levelData.pullMusic}`);
+			this.bgmPlayer.setGatchaTrack(`assets/sfx/${levelData.pullMusic}`);
 		}
 
 		// 3. Init Game Data (Found cats logic)

@@ -57,7 +57,11 @@
 				@click="toggleGatchaMenu"
 			/>
 
-			<ControlsPanel :modalManager="gameState.modalManager" />
+			<ControlsPanel
+				:modalManager="gameState.modalManager"
+				:bgmPlayer="gameState.bgmPlayer"
+			/>
+
 			<GatchaButton :gameState="gameState"/>
 
 		</div>
