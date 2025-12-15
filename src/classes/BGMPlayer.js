@@ -3,7 +3,8 @@
 	------------
 	A robust audio state machine.
 	Handles fading, track switching, volume, and muting.
-	Fixed: Prevents "Zombie" tracks from triggering state changes during interruptions.
+	Fixed: setGatchaTrack now correctly resets audio state to BGM during level transitions.
+	Fixed: crossFade now uses snapshots to prevent volume dips if called while already playing.
 */
 
 class BGMPlayer {
@@ -37,6 +38,7 @@ class BGMPlayer {
 	/**
 	 * Main State: PLAY BGM
 	 * Smoothly crossfades back to BGM.
+	 * Safe to call repeatedly - will just continue fading to BGM.
 	 */
 	playBGM() {
 		if(!this.initialized) return;
@@ -58,15 +60,10 @@ class BGMPlayer {
 	playGatchaTheme() {
 		if(!this.initialized) return;
 
-		// --- CRITICAL FIX ---
-		// If we interrupt a transition where Gatcha was playing (or fading out),
-		// we must STOP it immediately. If we don't, it might finish playing
-		// in the background, trigger 'onended', and call playBGM(),
-		// cancelling this new pull sequence.
+		// Stop any lingering Gacha
 		this.gatcha.pause();
 		this.gatcha.currentTime = 0;
-		this.gatcha.onended = null; // Clear old triggers
-		// --------------------
+		this.gatcha.onended = null;
 
 		// 1. Fade out BGM (1000ms)
 		this.fadeOut(this.bgm, 1000, () => {
@@ -83,25 +80,35 @@ class BGMPlayer {
 		});
 	}
 
+	/**
+	 * Swaps the Gatcha audio source safely (for Level Switching)
+	 * AND ensures we return to BGM state immediately.
+	 */
 	setGatchaTrack(url) {
-		const wasPlaying = !this.gatcha.paused;
+		// 1. Kill any active Gacha playback or callbacks
 		this.gatcha.pause();
+		this.gatcha.currentTime = 0;
+		this.gatcha.onended = null;
+
+		// 2. Load the new track
 		this.gatcha.src = url;
 		this.gatcha.load();
-		if(wasPlaying) this.gatcha.play();
+
+		// 3. Force return to BGM
+		// If BGM is already playing, this will smoothly ensure it stays that way.
+		// If Gacha WAS playing (the bug), this kills it and crossfades to BGM.
+		this.playBGM();
 	}
 
 	/**
 	 * Helper: Fades a single track out to 0, then pauses it.
-	 * SNAPSHOTS startVolume to allow smooth mid-fade reversals.
 	 */
 	fadeOut(track, duration, onComplete) {
 		if(this.fadeRaf) cancelAnimationFrame(this.fadeRaf);
 		this.isFading = true;
 		const startTime = performance.now();
 
-		// SNAPSHOT: Capture current volume.
-		// If BGM is fading in (e.g. at 0.4), we fade 0.4 -> 0 over the full duration.
+		// SNAPSHOT
 		const startVolume = track.volume;
 
 		const loop = (now) => {
@@ -126,19 +133,27 @@ class BGMPlayer {
 
 	/**
 	 * Helper: Fades one track out while fading another in.
+	 * Now uses SNAPSHOTS (Lerp) so it handles existing volume levels gracefully.
 	 */
 	crossFade(fadeOutTrack, fadeInTrack, duration) {
 		if(this.fadeRaf) cancelAnimationFrame(this.fadeRaf);
 		this.isFading = true;
 		const startTime = performance.now();
 
+		// SNAPSHOTS
+		const startVolOut = fadeOutTrack.volume;
+		const startVolIn = fadeInTrack.volume;
+
 		const loop = (now) => {
 			const elapsed = now - startTime;
 			const progress = Math.max(0, Math.min(1, elapsed / duration));
-			const effectiveVolume = this.isMuted ? 0 : this.masterVolume;
+			const targetMaster = this.isMuted ? 0 : this.masterVolume;
 
-			fadeOutTrack.volume = Math.max(0, (1 - progress) * effectiveVolume);
-			fadeInTrack.volume = Math.min(effectiveVolume, progress * effectiveVolume);
+			// Lerp Out: Start -> 0
+			fadeOutTrack.volume = Math.max(0, startVolOut * (1 - progress));
+
+			// Lerp In: Start -> TargetMaster
+			fadeInTrack.volume = startVolIn + (targetMaster - startVolIn) * progress;
 
 			if (progress < 1) {
 				this.fadeRaf = requestAnimationFrame(loop);
@@ -147,7 +162,8 @@ class BGMPlayer {
 				this.fadeRaf = null;
 				fadeOutTrack.pause();
 				fadeOutTrack.currentTime = 0;
-				fadeInTrack.volume = effectiveVolume;
+				// Ensure final snap is precise
+				fadeInTrack.volume = targetMaster;
 			}
 		};
 		this.fadeRaf = requestAnimationFrame(loop);
