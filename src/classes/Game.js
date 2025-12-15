@@ -129,6 +129,11 @@ export class Game {
 			this.bgmPlayer.setGatchaTrack(`assets/sfx/${levelData.pullMusic}`);
 		}
 
+		// 2. NEW: Setup Background Music
+		if (this.bgmPlayer && levelData.bgmMusic) {
+			this.bgmPlayer.setBGMTrack(`assets/sfx/${levelData.bgmMusic}`);
+		}
+
 		// Init Data
 		this.initGameData(levelData);
 
@@ -223,7 +228,7 @@ export class Game {
 		);
 
 		const capsuleObj = this.scene.$('#Capsule');
-		if(capsuleObj) {
+		if (capsuleObj) {
 			this.capsuleAnimator = new CapsuleAnimator(
 				capsuleObj.children,
 				this.scene,
@@ -279,7 +284,7 @@ export class Game {
 	 * Build a ray caster that responds to hidden kittehs
 	 */
 	buildKittehRaycaster() {
-		if(this.catRaycaster) {
+		if (this.catRaycaster) {
 			this.catRaycaster.destroy();
 		}
 

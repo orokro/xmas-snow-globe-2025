@@ -80,6 +80,27 @@ class BGMPlayer {
 		});
 	}
 
+
+	/**
+	 * Swaps the BGM audio source safely.
+     * Checks if the URL is actually new before reloading to prevent restart on re-load.
+	 */
+	setBGMTrack(url) {
+		// 1. Safety Check: Don't reload if it's already the active track
+		// (this.bgm.src is absolute, url is relative, so we check inclusion)
+		if (this.bgm.src.includes(url)) return;
+
+		const wasPlaying = !this.bgm.paused;
+
+		this.bgm.pause();
+		this.bgm.src = url;
+		this.bgm.load();
+
+		if(wasPlaying) {
+			this.bgm.play().catch(e => console.warn('BGM update blocked', e));
+		}
+	}
+
 	/**
 	 * Swaps the Gatcha audio source safely (for Level Switching)
 	 * AND ensures we return to BGM state immediately.

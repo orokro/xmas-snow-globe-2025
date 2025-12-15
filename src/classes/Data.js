@@ -49,6 +49,7 @@ export const levels = {
 		year: '2024',
 		model: 'snow_globe_scene_2024.glb', // The original model
 		pullMusic: 'zbot_gatcha.mp3', // Original pull music
+		bgmMusic: 'zbot_theme.mp3', // Original BGM music
 		background: {
 			gradient: 'linear-gradient(180deg, #4E2A77 0%, #1A1A3A 100%)', // Purple
 			image: 'reli_xmas_bg_pattern.png', // Original pattern
@@ -205,6 +206,7 @@ export const levels = {
 		year: '2025',
 		model: 'snow_globe_scene_2025.glb',
 		pullMusic: 'zbot_gatcha_2025.mp3',
+		bgmMusic: 'zbot_theme_2025.mp3',
 		background: {
 			gradient: 'linear-gradient(180deg,rgb(184, 236, 63) 0%,rgb(8, 56, 22) 100%)', // Orange/Brown
 			image: 'reli_xmas_bg_pattern.png',
