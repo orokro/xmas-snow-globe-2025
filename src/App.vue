@@ -48,7 +48,7 @@ const scene = new ThreeScene();
 const bgmPlayer = new BGMPlayer();
 
 // make a couple managers before we make our game
-const toastManager = new ToastManager(3);
+const toastManager = new ToastManager(3, bgmPlayer);
 const modalManager = new ModalManager();
 
 // make a new instance of our game object

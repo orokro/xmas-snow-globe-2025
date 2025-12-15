@@ -44,7 +44,7 @@ const props = defineProps({
 });
 
 // Audio State
-const volume = ref(0.5);
+const volume = ref(0.75);
 const muted = ref(false);
 
 // Actions
@@ -62,7 +62,7 @@ function updateMute() {
 
 // Credits Logic (Unchanged)
 const showCredits = () => {
-	const css = `<style>.inlineStyle { text-align: left; padding: 10px 30px; } .inlineStyle a { color: white; }</style>`;
+	const css = '<style>.inlineStyle { text-align: left; padding: 10px 30px; } .inlineStyle a { color: white; }</style>';
 
 	let modalHTML = `
 		<div class="inlineStyle"><small><small>

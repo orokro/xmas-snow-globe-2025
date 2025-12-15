@@ -243,11 +243,12 @@ export class Game {
 	 *
 	 * @param {Audio} sound - one of the Audio objects we built in the constructor
 	 */
+	// 1. Update playSound()
 	playSound(sound) {
-
-		// reset the sound and play it
-		sound.currentTime = 0;
-		sound.play();
+		// Delegate entirely to BGMPlayer
+		if (this.bgmPlayer) {
+			this.bgmPlayer.playSFX(sound);
+		}
 	}
 
 
@@ -310,7 +311,7 @@ export class Game {
 
 				// Create the Unboxing Logic
 				// We pass a callback for what happens when unboxing finishes
-				this.presentUnboxing = new PresentUnboxing(giftBox.children, this.scene, () => {
+				this.presentUnboxing = new PresentUnboxing(giftBox.children, this.scene, this.bgmPlayer, () => {
 
 					// --- UNBOXING COMPLETE CALLBACK ---
 					this.mode.value = Game.MODE.PLAYING;
@@ -337,7 +338,7 @@ export class Game {
 	buildKittehRaycaster() {
 
 		// Destroy old one if it exists to stop duplicate clicks
-		if(this.catRaycaster) {
+		if (this.catRaycaster) {
 			this.catRaycaster.destroy();
 		}
 
@@ -464,8 +465,7 @@ export class Game {
 
 		// in the public folder /assets/sfx/ there's a meow.mp3 file
 		// play that sound now
-		const audio = new Audio('assets/sfx/meow.mp3');
-		audio.play();
+		this.playSound('assets/sfx/meow.mp3');
 
 		/*
 			There's only 12 cats in the cats array.
