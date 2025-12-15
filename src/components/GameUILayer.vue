@@ -8,7 +8,14 @@
 				class="navArrow left"
 				@click="handleSwitch('2024')"
 			>
-				<div class="triangle"></div>
+				<svg viewBox="0 0 100 100" class="arrowIcon">
+					<path d="M 25 20 L 85 50 L 25 80 Z"
+						  fill="none" stroke="white" stroke-width="10" stroke-linejoin="round" />
+
+					<path d="M 25 20 L 85 50 L 25 80 Z"
+						  fill="white" stroke="black" stroke-width="6" stroke-linejoin="round" />
+				</svg>
+
 				<span>2024</span>
 			</div>
 
@@ -17,7 +24,14 @@
 				class="navArrow right"
 				@click="handleSwitch('2025')"
 			>
-				<div class="triangle"></div>
+				<svg viewBox="0 0 100 100" class="arrowIcon">
+					<path d="M 25 20 L 85 50 L 25 80 Z"
+						  fill="none" stroke="white" stroke-width="10" stroke-linejoin="round" />
+
+					<path d="M 25 20 L 85 50 L 25 80 Z"
+						  fill="white" stroke="black" stroke-width="6" stroke-linejoin="round" />
+				</svg>
+
 				<span>2025</span>
 			</div>
 
@@ -81,9 +95,6 @@ const props = defineProps({
 });
 
 // === STATE ===
-
-// This holds the "Snapshot" of where we are going,
-// so the UI doesn't flip when the level loads in the background.
 const transitionTarget = ref('');
 
 // === COMPUTED ===
@@ -97,21 +108,13 @@ const shouldShowUI = computed(() => {
 
 const shouldShowTransition = computed(() => {
 	if (!props.gameState) return false;
-	// Strictly show only when transitioning
 	return props.gameState.isTransitioning?.value === true;
 });
 
 // === METHODS ===
 
-/**
- * Handles the click event for level switching.
- * Snapshots the target year BEFORE telling the game to switch.
- */
 function handleSwitch(year) {
-	// 1. Lock in the visual target
 	transitionTarget.value = year;
-
-	// 2. Trigger the game logic (which will eventually change currentLevelKey)
 	props.gameState.switchLevel(year);
 }
 
@@ -143,29 +146,48 @@ function toggleGatchaMenu() {
 		cursor: pointer;
 		z-index: 100;
 
+		// Flexbox to stack Icon + Text
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
 
-		&:hover { transform: translateY(-50%) scale(1.1); }
+		transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+		&:hover {
+			transform: translateY(-50%) scale(1.1);
+		}
 
 		&.left { left: 20px; }
 		&.right { right: 20px; }
 
-		.triangle {
+		// SVG Styling
+		.arrowIcon {
+			width: 100px;
+			height: 100px;
 
-			width: 0;
-			height: 0;
-			border-top: 20px solid transparent;
-			border-bottom: 20px solid transparent;
+			// Drop shadow for depth
+			/* filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.5)); */
 		}
-		&.left .triangle { border-right: 30px solid white; }
-		&.right .triangle { border-left: 30px solid white; }
+
+		// Specific rotation for Left arrow
+		// We mirror the whole SVG to point left
+		&.left .arrowIcon {
+			transform: scaleX(-1);
+		}
 
 		span {
 			display: block;
 			color: white;
-			font-weight: bold;
+			font-weight: 900;
+			font-size: 24px;
 			text-align: center;
-			margin-top: 5px;
-			text-shadow: 0 0 5px black;
+			margin-top: -10px; // Pull text closer to arrow
+			text-shadow:
+				-2px -2px 0 #000,
+				2px -2px 0 #000,
+				-2px 2px 0 #000,
+				2px 2px 0 #000; // Thick text outline
 		}
 	}
 </style>
