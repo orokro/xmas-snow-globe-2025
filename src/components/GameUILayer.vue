@@ -148,7 +148,7 @@ function toggleGatchaMenu() {
 		top: 50%;
 		transform: translateY(-50%);
 		cursor: pointer;
-		z-index: 100;
+		z-index: 0;
 
 		// Flexbox to stack Icon + Text
 		display: flex;

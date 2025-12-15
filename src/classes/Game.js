@@ -16,7 +16,7 @@ import PresentUnboxing from './PresentUnboxing';
 import CapsuleAnimator from './CapsuleAnimator';
 import PullCameraAnimator from './PullCameraAnimator';
 // import our data
-import { cats, gatchaQuotes, levels } from './Data';
+import { cats, levels } from './Data';
 
 // main export
 export class Game {

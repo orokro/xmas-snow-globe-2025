@@ -28,7 +28,7 @@
 			</div>
 		</div>
 
-		<div class="creditsRow">
+		<div class="row row_4 creditsRow">
 			<span @click="showCredits">Credits</span>
 		</div>
 	</div>
@@ -36,11 +36,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import { gatchaQuotes } from '@/classes/Data';
+// UPDATE: Import levels instead of the old flat array
+import { levels } from '@/classes/Data';
 
 const props = defineProps({
 	modalManager: Object,
-	bgmPlayer: Object // <--- NEW PROP
+	bgmPlayer: Object
 });
 
 // Audio State
@@ -60,7 +61,6 @@ function updateMute() {
 	}
 }
 
-// Credits Logic (Unchanged)
 const showCredits = () => {
 	const css = '<style>.inlineStyle { text-align: left; padding: 10px 30px; } .inlineStyle a { color: white; }</style>';
 
@@ -91,8 +91,20 @@ const showCredits = () => {
 	` + css;
 	props.modalManager.showModal(modalHTML, 'Additional Art');
 
-	const froms = gatchaQuotes.map(quote => quote.from).filter((v, i, a) => a.indexOf(v) === i);
+	// --- NEW DYNAMIC LOGIC ---
+	// 1. Get all levels
+	// 2. Map them to their quotes arrays
+	// 3. Flatten into one big array of quotes
+	const allQuotes = Object.values(levels).flatMap(level => level.quotes);
+
+	// 4. Extract unique authors
+	const froms = allQuotes
+		.map(quote => quote.from)
+		.filter((v, i, a) => a.indexOf(v) === i); // Unique filter
+
 	const fromsStr = froms.join(', ');
+	// -------------------------
+
 	modalHTML = `
 		<div class="inlineStyle"><small><small>
 			Thanks to everyone who contributed quotes:<br>
@@ -109,7 +121,7 @@ const showCredits = () => {
 	bottom: 30px;
 	right: 30px;
 	width: 215px;
-	height: 230px; // Increased height for audio controls
+	height: 230px;
 
 	background: rgba(0, 0, 0, 0.3);
 	backdrop-filter: blur(5px);
@@ -134,9 +146,20 @@ const showCredits = () => {
 		&.row_1 { top: 25px; }
 		&.row_2 { top: 80px; }
 		&.row_3 { top: 135px; }
+
+		&.row_4 {
+			top: auto;
+			bottom: 10px;
+			left: 0;
+			right: 0;
+			text-align: center;
+			opacity: 0.7;
+			cursor: pointer;
+			&:hover { opacity: 1; }
+			span { color: white; text-decoration: underline; }
+		}
 	}
 
-	// NEW: Audio Control Styles
 	.audioRow {
 		position: absolute;
 		top: 175px;
@@ -148,10 +171,10 @@ const showCredits = () => {
 		font-size: 12px;
 
 		.sliderContainer {
+			margin-left: 10px;
 			display: flex;
 			align-items: center;
 			gap: 5px;
-			margin-left: 10px;
 			input[type=range] {
 				width: 80px;
 				cursor: pointer;
@@ -164,27 +187,10 @@ const showCredits = () => {
 			input {
 				cursor: pointer;
 				accent-color: #2ECDB5;
-				background: #2ECDB5;
-				outline: 2px solid #2ECDB5;
-				border-radius: 5px;
+				outline: #2ECDB5 2px solid;
+
 			}
 			margin-right: 30px;
-		}
-	}
-
-	.creditsRow {
-		position: absolute;
-		bottom: 10px;
-		left: 0;
-		right: 0;
-		text-align: center;
-		span {
-			color: white;
-			text-decoration: underline;
-			cursor: pointer;
-			font-size: 12px;
-			opacity: 0.7;
-			&:hover { opacity: 1; }
 		}
 	}
 }
