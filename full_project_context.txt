@@ -1,0 +1,5041 @@
+
+
+================================================================================
+File: .eslintrc.json
+================================================================================
+{
+	"env": {
+		"node": true,
+		"es2021": true
+	},
+	"extends": [
+		"eslint:recommended",
+		"plugin:vue/vue3-essential"
+	],
+	"parserOptions": {
+		"ecmaVersion": "latest",
+		"sourceType": "module"
+	},
+	"plugins": [
+		"vue"
+	],
+	"rules": {
+		"vue/no-use-v-if-with-v-for": "off",
+		"indent": [
+			"error",
+			"tab"
+		],
+		"linebreak-style": [
+			"error",
+			"unix"
+		],
+		"quotes": [
+			"error",
+			"single"
+		],
+		"semi": [
+			"error",
+			"always"
+		],
+		"no-unused-vars": "off",
+		// note my ThreeScene.js file uses Async promise handlers.
+		// so turning this off.
+		// TODO in future: see if ThreeScene.js actually needs them async
+		"no-async-promise-executor": "off",
+		"no-fallthrough": "off",
+		"no-constant-condition": "off",
+		"vue/no-mutating-props": "off",
+		"no-case-declarations": "off",
+		"no-inner-declarations": "off"
+	},
+	"globals": {
+		"electronAPI": "readonly",
+		"electronClipboard": "readonly"
+	}
+}
+
+
+================================================================================
+File: concatenate_project.js
+================================================================================
+import fs from 'fs';
+import path from 'path';
+
+
+// --- CONFIGURATION ---
+const OUTPUT_FILE = 'full_project_context.txt';
+
+// Folders to strictly ignore
+const IGNORED_DIRS = new Set([
+  'node_modules',
+  '.git',
+  '.vscode',
+  'dist',
+  'build',
+  'coverage',
+  'shops_and_misc', // Binary source files (Blender/PSD)
+  'public',         // Binary assets (GLB, PNG, MP3)
+]);
+
+// Files to strictly ignore (optional, for specific large files)
+const IGNORED_FILES = new Set([
+  'package-lock.json',
+  'yarn.lock',
+  '.DS_Store'
+]);
+
+// Extensions we WANT to read.
+// If a file is in 'src' but is a .png, it will still be skipped.
+const ALLOWED_EXTENSIONS = new Set([
+  '.js',
+  '.mjs',
+  '.vue',
+  '.json',
+  '.html',
+  '.css',
+  '.scss',
+  '.md',
+  '.txt'
+]);
+
+// --- MAIN SCRIPT ---
+
+function processDirectory(currentPath) {
+  const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(currentPath, entry.name);
+
+    // 1. Handle Directories
+    if (entry.isDirectory()) {
+      if (!IGNORED_DIRS.has(entry.name)) {
+        processDirectory(fullPath);
+      }
+    }
+    // 2. Handle Files
+    else if (entry.isFile()) {
+      const ext = path.extname(entry.name).toLowerCase();
+
+      // Check if file is allowed and not explicitly ignored
+      if (ALLOWED_EXTENSIONS.has(ext) && !IGNORED_FILES.has(entry.name)) {
+        try {
+          const content = fs.readFileSync(fullPath, 'utf8');
+          appendToFile(fullPath, content);
+          console.log(`Included: ${fullPath}`);
+        } catch (err) {
+          console.error(`Error reading ${fullPath}: ${err.message}`);
+        }
+      }
+    }
+  }
+}
+
+function appendToFile(filePath, content) {
+  const header = `\n\n================================================================================\nFile: ${filePath}\n================================================================================\n`;
+  fs.appendFileSync(OUTPUT_FILE, header + content);
+}
+
+// --- EXECUTION ---
+
+try {
+  // Clear existing output file if it exists
+  if (fs.existsSync(OUTPUT_FILE)) {
+    fs.unlinkSync(OUTPUT_FILE);
+  }
+
+  console.log('Scanning project...');
+  processDirectory('.');
+  console.log(`\nDone! Context saved to: ${OUTPUT_FILE}`);
+} catch (err) {
+  console.error('Fatal Error:', err);
+}
+
+
+================================================================================
+File: eslint.config.js
+================================================================================
+import js from '@eslint/js'
+import pluginVue from 'eslint-plugin-vue'
+
+export default [
+	{
+		name: 'app/files-to-lint',
+		files: ['**/*.{js,mjs,jsx,vue}'],
+	},
+
+	{
+		name: 'app/files-to-ignore',
+		ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**'],
+	},
+
+
+	js.configs.recommended,
+	...pluginVue.configs['flat/essential'],
+
+
+	{
+		rules: {
+			'vue/no-use-v-if-with-v-for': 'off',
+			indent: ['error', 'tab'],
+			'linebreak-style': ['error', 'unix'],
+			quotes: ['error', 'single'],
+			semi: ['error', 'always'],
+			'no-unused-vars': 'off',
+			'no-async-promise-executor': 'off',
+			'no-fallthrough': 'off',
+			'no-constant-condition': 'off',
+			'vue/no-mutating-props': 'off',
+			'no-case-declarations': 'off',
+			'no-inner-declarations': 'off',
+		},
+	}
+]
+
+
+================================================================================
+File: eslint.config.mjs
+================================================================================
+import vue from 'eslint-plugin-vue';
+import globals from 'globals';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import js from '@eslint/js';
+import { FlatCompat } from '@eslint/eslintrc';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const compat = new FlatCompat({
+	baseDirectory: __dirname,
+	recommendedConfig: js.configs.recommended,
+	allConfig: js.configs.all
+});
+
+export default [...compat.extends('eslint:recommended', 'plugin:vue/vue3-essential'), {
+	plugins: {
+		vue,
+	},
+
+	languageOptions: {
+		globals: {
+			...globals.node,
+			electronAPI: 'readonly',
+			electronClipboard: 'readonly',
+		},
+
+		ecmaVersion: 'latest',
+		sourceType: 'module',
+	},
+
+	rules: {
+		'vue/no-use-v-if-with-v-for': 'off',
+		indent: ['error', 'tab'],
+		'linebreak-style': ['error', 'unix'],
+		quotes: ['error', 'single'],
+		semi: ['error', 'always'],
+		'no-unused-vars': 'off',
+		'no-async-promise-executor': 'off',
+		'no-fallthrough': 'off',
+		'no-constant-condition': 'off',
+		'vue/no-mutating-props': 'off',
+		'no-case-declarations': 'off',
+		'no-inner-declarations': 'off',
+	},
+}];
+
+
+================================================================================
+File: index.html
+================================================================================
+<!DOCTYPE html>
+<html lang="">
+	<head>
+		<meta charset="UTF-8">
+		<link rel="icon" href="/favicon.ico">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Aurelinaut Crimmas</title>
+	</head>
+	<body>
+		<div id="app"></div>
+		<script type="module" src="/src/main.js"></script>
+	</body>
+</html>
+
+
+================================================================================
+File: jsconfig.json
+================================================================================
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}
+
+
+================================================================================
+File: package.json
+================================================================================
+{
+	"name": "xmas-snow-globe",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite --host",
+		"build": "vite build",
+		"preview": "vite preview",
+		"lint": "eslint . --fix"
+	},
+	"dependencies": {
+		"@tweenjs/tween.js": "^25.0.0",
+		"chroma-js": "^2.4.2",
+		"sass": "^1.83.0",
+		"three": "^0.157.0",
+		"three-addons": "^1.2.0",
+		"vue": "^3.5.13"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.14.0",
+		"@vitejs/plugin-vue": "^5.2.1",
+		"eslint": "^9.14.0",
+		"eslint-plugin-vue": "^9.30.0",
+		"vite": "^6.0.1",
+		"vite-plugin-vue-devtools": "^7.6.5"
+	}
+}
+
+
+================================================================================
+File: README.md
+================================================================================
+# xmas-snow-globe
+
+This template should help get you started developing with Vue 3 in Vite.
+
+## Recommended IDE Setup
+
+[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+
+## Customize configuration
+
+See [Vite Configuration Reference](https://vite.dev/config/).
+
+## Project Setup
+
+```sh
+npm install
+```
+
+### Compile and Hot-Reload for Development
+
+```sh
+npm run dev
+```
+
+### Compile and Minify for Production
+
+```sh
+npm run build
+```
+
+### Lint with [ESLint](https://eslint.org/)
+
+```sh
+npm run lint
+```
+
+
+================================================================================
+File: src\App.vue
+================================================================================
+<!--
+	App.vue
+	-------
+
+	Main entry point / root component of the App.
+-->
+<template>
+
+	<main>
+
+		<!-- this will render our background layer stack (i.e. gradient, texture, etc ) -->
+		<BackgroundLayers :gameState="game"/>
+
+		<!-- this will mount our threeJS scene when ready -->
+		<ThreeSceneLayer :scene="scene"/>
+
+		<!-- this layer holds all the UI for the various game modes -->
+		<GameUILayer :scene="scene" :gameState="game"/>
+
+		<!-- show toasts if any queued up -->
+		<ToastMsg :toastManager="toastManager"/>
+
+		<!-- show modals if any queued up -->
+		<ModalMsg :modalManager="modalManager"/>
+
+	</main>
+</template>
+<script setup>
+
+// components
+import BackgroundLayers from './components/BackgroundLayers.vue';
+import ThreeSceneLayer from './components/ThreeSceneLayer.vue';
+import GameUILayer from './components/GameUILayer.vue';
+import ToastMsg from './components/ToastMsg.vue';
+import ModalMsg from './components/ModalMsg.vue';
+
+// app / misc
+import ThreeScene from './classes/ThreeScene';
+import { Game } from './classes/Game';
+import ToastManager from './classes/ToastManager';
+import ModalManager from './classes/ModalManager';
+import BGMPlayer from './classes/BGMPlayer';
+
+// create a new ThreeJS scene
+const scene = new ThreeScene();
+
+// make new BGM player waiting for first window click
+const bgmPlayer = new BGMPlayer();
+
+// make a couple managers before we make our game
+const toastManager = new ToastManager(3);
+const modalManager = new ModalManager();
+
+// make a new instance of our game object
+const game = new Game(scene, toastManager, modalManager, bgmPlayer);
+
+// for debugging & ez access
+window.b = bgmPlayer;
+window.s = scene;
+window.t = toastManager;
+window.m = modalManager;
+window.g = game;
+
+</script>
+<style lang="scss" scoped>
+
+
+</style>
+
+
+================================================================================
+File: src\assets\style.css
+================================================================================
+/*
+	style.css
+	---------
+
+	global styles for app
+*/
+
+/* generic body styles */
+body {
+	font-family: 'Roboto', sans-serif;
+	margin: 0;
+	padding: 0;
+	background-color: #f5f5f5;
+	user-select: none;
+}
+
+
+================================================================================
+File: src\classes\BGMPlayer.js
+================================================================================
+/*
+	BGMPlayer.js
+	------------
+
+	The BGMPlayer class is a simple class that plays background music when the user clicks on the window.
+*/
+
+// main class export
+class BGMPlayer {
+
+
+	/**
+	 * Constructs the BGMPlayer
+	 */
+	constructor() {
+
+
+		// Create audio objects for both themes
+		this.bgm = new Audio('assets/sfx/zbot_theme.mp3');
+		this.gatchaTheme = new Audio('assets/sfx/zbot_gatcha.mp3');
+
+		// Enable looping for background music
+		this.bgm.loop = true;
+
+		// A flag to control the initial play action
+		this.initialized = false;
+
+		// Setup event listener to start the BGM on the first user interaction
+		window.addEventListener('click', () => {
+			if (!this.initialized) {
+				this.bgm.play();
+				this.initialized = true;
+			}
+		}, { once: true });
+	}
+
+
+	/**
+	 * Temporarily interrupts the BGM music to play the gatcha theme
+	 */
+	playGatchaTheme() {
+
+		// Gradually reduce the volume of the main BGM
+		this.fadeVolume(this.bgm, 1, 0, 1000, () => {
+
+			// Once volume is faded out, play the gatcha theme
+			this.gatchaTheme.play();
+
+			// Listen for when the gatcha theme has finished playing
+			this.gatchaTheme.onended = () => {
+
+				// Once gatcha theme is complete, fade BGM back in
+				this.fadeVolume(this.bgm, 0, 1, 1000);
+			};
+		});
+	}
+
+
+	/**
+	 * Fades the volume of an audio object
+	 *
+	 * @param {Audio} audio - the audio object to fade
+	 * @param {Number} startVolume - the starting volume
+	 * @param {Number} endVolume - the ending volume
+	 * @param {Number} duration - the duration of the fade in milliseconds
+	 * @param {Function} callback - the method to call when the fade is complete
+	 */
+	fadeVolume(audio, startVolume, endVolume, duration, callback) {
+
+
+		// Number of steps to fade & some time calculations
+		const steps = 50;
+		const stepTime = duration / steps;
+		const volumeStep = (endVolume - startVolume) / steps;
+		let currentStep = 0;
+
+		// Set the initial volume
+		audio.volume = startVolume;
+
+		// Start the interval to fade the volume
+		const interval = setInterval(() => {
+
+			if (currentStep >= steps) {
+				clearInterval(interval);
+				if (callback) callback();
+			} else {
+				currentStep++;
+				audio.volume += volumeStep;
+			}
+
+		}, stepTime);
+	}
+
+}
+
+export default BGMPlayer;
+
+
+================================================================================
+File: src\classes\CapsuleAnimator.js
+================================================================================
+/*
+	CapsuleAnimator.js
+	------------------
+
+	This file provides a class that handles the complex animation of a capsule object.
+*/
+
+// three & third party libs
+import * as THREE from 'three';
+import chroma from 'chroma-js';
+import TWEEN from '@tweenjs/tween.js';
+
+// app
+import ThreeScene from './ThreeScene';
+
+// main class
+class CapsuleAnimator {
+
+	/**
+	 * Constructs the CapsuleAnimator
+	 *
+	 * @param {THREE.Object3D} objects - the object to animate
+	 * @param {ThreeScene} threeScene - the scene to animate in
+	 * @param {Function} onComplete - the method to call when the animation is complete
+	 */
+	constructor(objects, threeScene, onComplete) {
+
+		// save our threeJS scene
+		this.threeScene = threeScene;
+
+		// save the parts of the capsule (because threeJS makes a mesh for each material)
+		this.objects = objects;
+
+		// make sure our objects have Unique materials since we'll be changing some props on 'em
+		this.cloneMaterials();
+
+		// save our callback for when animation is complete
+		this.onComplete = onComplete;
+
+		// create a clock to manage our timing
+		this.clock = new THREE.Clock(false);
+
+		// the timing and durations for all our shape keys (morph targets)
+		this.animations = [
+			{ key: 'Shrink', from: 1, to: 0, start: 0, duration: 0.5 },
+			{ key: 'Move_Up', from: 0, to: 1, start: 0.5, duration: 0.3 },
+			{ key: 'Open', from: 0, to: 1.05, start: 0.8, duration: 0.3 },
+			{ key: 'Unfold_AY', from: 0, to: 1, start: 1.1, duration: 0.20, easing: 'inOut' },
+			{ key: 'Unfold_AY', from: 1, to: 0, start: 1.30, duration: 0.20, easing: 'inOut' },
+			{ key: 'Unfold_AX', from: 0, to: 1, start: 1.1, duration: 0.4 },
+			{ key: 'Unfold_BY', from: 0, to: 1, start: 1.5, duration: 0.20, easing: 'inOut' },
+			{ key: 'Unfold_BY', from: 1, to: 0, start: 1.7, duration: 0.20, easing: 'inOut' },
+			{ key: 'Unfold_BZ', from: 0, to: 1, start: 1.5, duration: 0.4 },
+			{ key: 'Center_Paper', from: 0, to: 1.5, start: 1.1, duration: 0.8 }
+		];
+
+		// Total time from start to finish of all animations
+		this.totalDuration = 1.8;
+	}
+
+
+	/**
+	 * Clones the materials on the objects, so we can animate them without affecting the original
+	 */
+	cloneMaterials() {
+
+		// clone the materials on the objects
+		this.objects.forEach(obj => {
+			obj.material = obj.material.clone();
+		});
+	}
+
+
+	/**
+	 * Recursive frame-by-frame animation method
+	 */
+	animate() {
+
+		// don't recurse if we're done
+		const elapsedTime = this.clock.getElapsedTime();
+		if (elapsedTime > this.totalDuration) {
+
+
+			// apply final morph target values
+			this.setMorpthTargetValue('Shrink', 0);
+			// this.setMorpthTargetValue('Move_Up', 0.9);
+			// this.setMorpthTargetValue('Open', 1);
+			this.setMorpthTargetValue('Unfold_AY', 0);
+			this.setMorpthTargetValue('Unfold_AX', 1);
+			this.setMorpthTargetValue('Unfold_BY', 0.6);
+			this.setMorpthTargetValue('Unfold_BZ', 0.7);
+			this.setMorpthTargetValue('Center_Paper', 1.35);
+
+			this.onComplete();
+			this.clock.stop();
+			return;
+		}
+
+		// loop over the list of simultaneous animations & handle each with our global time
+		this.animations.forEach(anim => {
+			this.applyAnimation(anim, elapsedTime);
+		});
+
+		requestAnimationFrame(this.animate.bind(this));
+	}
+
+
+	setMorpthTargetValue(key, value) {
+
+		this.objects.forEach(obj => {
+			if (obj.morphTargetDictionary && obj.morphTargetDictionary[key] !== undefined) {
+				obj.morphTargetInfluences[obj.morphTargetDictionary[key]] = value;
+			}
+		});
+	}
+
+	/**
+	 * Applies the animation to the objects
+	 *
+	 * @param {Object} anim - the animation object
+	 * @param {Number} elapsedTime - the current time
+	 */
+	applyAnimation(anim, elapsedTime) {
+
+		// calculate the time into the animation
+		const timeIntoAnimation = elapsedTime - anim.start;
+
+		// if we're in the animation window, apply the animation
+		if (timeIntoAnimation >= 0 && timeIntoAnimation <= anim.duration) {
+
+			// calculate the progress & ease it if needed
+			const progress = timeIntoAnimation / anim.duration;
+			const easedProgress = anim.easing === 'inOut' ? THREE.MathUtils.smoothstep(progress, 0, 1) : progress;
+			const value = THREE.MathUtils.lerp(anim.from, anim.to, easedProgress);
+
+			// Apply the morph target value across all objects that contain it
+			this.objects.forEach(obj => {
+				if (obj.morphTargetDictionary && obj.morphTargetDictionary[anim.key] !== undefined) {
+					obj.morphTargetInfluences[obj.morphTargetDictionary[anim.key]] = value;
+				}
+			});
+		}
+	}
+
+
+	/**
+	 * Kick off the opening animation
+	 */
+	start(onComplete=null) {
+
+		this.onComplete = onComplete || this.onComplete;
+
+		// randomly color the capsule's second material (the opaque one),
+		// using chromajs to get a 75% saturated color, any hue, and a lightness of 50%
+		const randomColor = chroma.hsl(Math.random() * 360, 0.75, 0.5).hex();
+		this.objects[1].material.color.set(randomColor);
+
+		// zoom camera out while we open the capsule
+		this.zoomOut(2);
+
+		this.clock.start();
+		requestAnimationFrame(this.animate.bind(this));
+	}
+
+
+	/**
+	 * Resets the animations to their initial state
+	 */
+	resetAnimations() {
+
+		// Set the initial values for each animation
+		this.animations.forEach(anim => {
+
+			const targetValue = anim.key === 'Shrink' ? 1 : 0;
+
+			this.objects.forEach(obj => {
+				if (obj.morphTargetDictionary && obj.morphTargetDictionary[anim.key] !== undefined) {
+					obj.morphTargetInfluences[obj.morphTargetDictionary[anim.key]] = targetValue;
+				}
+			});
+		});
+
+	}
+
+
+	/**
+	 * Zooms the camera out from the capsule
+	 *
+	 * @param {Number} duration - the duration of the zoom out in seconds
+	 */
+	zoomOut(duration) {
+
+		// Check if the end position is defined, if not, initialize it
+		if (!this.capsuleCameraEndPos) {
+			this.capsuleCameraEndPos = this.threeScene.capsuleCamera.position.clone();
+		}
+
+		// Calculate the start position if not defined (1 meter in front of the end position)
+		if (!this.capsuleCameraStartPos) {
+
+			// Adjust this vector if you need a different front direction
+			this.capsuleCameraStartPos = this.capsuleCameraEndPos.clone().add(new THREE.Vector3(0, 0, 1));
+		}
+
+		// Randomly determine the roll direction: +7 or -7 degrees in radians
+		const rollDirection = Math.random() < 0.5 ? -1 : 1;
+		const startRoll = rollDirection * (7 * Math.PI / 180);
+		const endRoll = 0;
+
+		// Set initial position and rotation
+		this.threeScene.capsuleCamera.position.copy(this.capsuleCameraStartPos);
+		this.threeScene.capsuleCamera.rotation.z = startRoll;
+
+		// Create a TWEEN for moving and rolling the camera
+		const zoomTween = new TWEEN.Tween(
+			{
+				zr: startRoll,
+				x: this.capsuleCameraStartPos.x,
+				y: this.capsuleCameraStartPos.y,
+				z: this.capsuleCameraStartPos.z
+			})
+			.to({
+				zr: endRoll,
+				x: this.capsuleCameraEndPos.x,
+				y: this.capsuleCameraEndPos.y,
+				z: this.capsuleCameraEndPos.z
+			}, duration * 1000)
+			.onUpdate((obj) => {
+				this.threeScene.capsuleCamera.position.set(obj.x, obj.y, obj.z);
+				this.threeScene.capsuleCamera.rotation.z = obj.zr;
+			})
+			.easing(TWEEN.Easing.Cubic.Out) // This can be changed to any easing function
+			.start();
+
+		// Start the animation loop
+		const animate = () => {
+			requestAnimationFrame(animate);
+			zoomTween.update();
+		};
+
+		animate();
+	}
+
+}
+
+export default CapsuleAnimator;
+
+
+================================================================================
+File: src\classes\Data.js
+================================================================================
+/*
+	Data.js
+	-------
+
+	Importing JSON files directly into our code can be a bit of a pain. This file
+	will just be some JavaScript exports with the data for our game.
+*/
+
+// the list of cats, including their 3D object names
+export const cats = [
+	{
+		name: 'Cookie',
+		icon: '01_cookie.png',
+		object: 'Cookie',
+	},
+	{
+		name: 'Front',
+		icon: '12_front.png',
+		object: 'FrontKitteh',
+	},
+	{
+		name: 'Chimney',
+		icon: '02_chimney.png',
+		object: 'ChimneyKitteh',
+	},
+	{
+		name: 'Trash',
+		icon: '03_trash.png',
+		object: 'TrashKitteh',
+	},
+	{
+		name: 'Fence',
+		icon: '04_fence.png',
+		object: 'FenceKitteh',
+	},
+	{
+		name: 'Window',
+		icon: '05_window.png',
+		object: 'WindowKitteh',
+	},
+	{
+		name: 'Ladder',
+		icon: '06_ladder.png',
+		object: 'LadderKitteh',
+	},
+	{
+		name: 'Truck',
+		icon: '07_truck.png',
+		object: 'TruckKitteh',
+	},
+	{
+		name: 'Front Door',
+		icon: '08_front_door.png',
+		object: 'FrontDoorKitteh',
+	},
+	{
+		name: 'Upper Tree Kitteh',
+		icon: '09_tree_upper.png',
+		object: 'TopTreeKitteh',
+	},
+	{
+		name: 'Under Tree Kitteh',
+		icon: '10_tree_lower.png',
+		object: 'UnderTreeKitteh',
+	},
+	{
+		name: 'Mailbox',
+		icon: '11_mailbox.png',
+		object: 'MailKitteh',
+	},
+];
+
+
+// the list of random quotes from Aurelinauts to pull
+export const gatchaQuotes = [
+
+	{
+		from: 'Orokro',
+		text: 'The scuff in this xMas gatcha is real',
+	},
+	{
+		from: 'Orokro',
+		text: 'Last rizzmas I gave you my Gyatt. This rizzmas ILL FN DO IT AGAIN',
+	},
+	{
+		from: 'Cookie',
+		text: 'Meowy Christmas!',
+	},
+	{
+		from: 'Cookie',
+		text: 'Feed me mother!',
+	},
+	{
+		from: 'Orokro',
+		text: 'I herd u liek snow globes. Merry Crimmas!',
+		force_first: true,
+	},
+	{
+		from: 'Don',
+		text: 'Imperial Units',
+	},
+	{
+		from: 'Don',
+		text: 'What the fuck is a kilometer',
+	},
+	{
+		from: 'Don',
+		text: '"I\'m just a little catboy" ~Reli in cosplay at AWA" - Lucina'
+	},
+	{
+		from: 'Araziel',
+		text: '"It\'s jiggling because it\'s a fake chest" Said by Reli',
+	},
+	{
+		from: 'Araziel',
+		text: '"I am 1.03125 Relis tall on a Tuesday” -Drewus Maximus',
+	},
+	{
+		from: 'Araziel',
+		text: '"Imagine being an alien residing in the land of horny measurements and not being allowed to be sekushii"',
+	},
+	{
+		from: 'Araziel',
+		text: 'Women love me, Fish fear me, Childe wants me',
+	},
+	{
+		from: 'Araziel',
+		text: 'Wow Aurelia encourages unsafe driving smh my head',
+	},
+	{
+		from: 'Araziel',
+		text: 'Assiopeia should be the NSFW tag',
+	},
+	{
+		from: 'Rennova',
+		text: 'I first followed you on Christmas day a year ago, and do not regret it. Thanks for this past year, Aurelia. Hope to get to know you more in the future.',
+	},
+	{
+		from: 'Rennova',
+		text: 'Have a cosmic Christmas!',
+	},
+	{
+		from: 'Fiend',
+		text: 'Stopped binging alcohol to watch the Space Lady',
+	},
+	{
+		from: 'Fiend',
+		text: 'The V-Moe girls distracted me long enough for the Dunkin Donuts employee I was holding at gun point to run away',
+	},
+	{
+		from: 'Lotus the Ghost',
+		text: 'Merry Christmas Reli! I hope you\'re able to reach your goals and have fun in the new year!',
+	},
+	{
+		from: 'Lotus the Ghost',
+		text: 'help i\'m stuck in a website',
+	},
+	{
+		from: 'Zach M',
+		text: 'Happy Holidays Aurelia, I just wanted to use this opportunity to say thank you for being your: awesome, funny, lighthearted, sometimes lewd, always crazy, kind, incredible costume-making, amazing, self. I’m so glad to have discovered you, and look forward to giving you my continued support. Happy holidays!!! P.S. Don’t tell Allen, but you’re actually my number one favorite twerking alien.',
+	},
+	{
+		from: 'Zach M',
+		text: 'Aurelia, My last two brain cells were so busy competing for third place that they both came in fourth, trying to write this message; Anyways………..HERES TO CELEBRATING SOME HAPPY HOLIDAYS AND TO MANY MORE!!!!! 🍺',
+	},
+	{
+		from: 'Drewus Maximus',
+		text: 'MERRY CHRISTMAS TO OUR BESTEST IDOL ALIEN! Hope you have a nice holiday and all your dreams come true next year 💜',
+	},
+	{
+		from: 'Drewus Maximus',
+		text: 'Skibidi Reli in Fortnite',
+	},
+	{
+		from: 'Drewus Maximus',
+		text: 'cookie when she heard what Santa eats',
+	},
+	{
+		from: 'Wooderson',
+		text: '“I love chicken katsu, on a bed of rice, that shit slaps my nuts." -Aurelia Cassiopeia, 2024',
+	},
+	{
+		from: 'Wooderson',
+		text: 'Merry Christmas to the greatest space alien, idol, maid(failure)',
+	},
+	{
+		from: 'Abysmal',
+		text: 'Reliiiiii!! While I haven\'t been here long, it\'s been extremely entertaining watching you and your community grow. Anytime I catch you or a VOD I know I\'m in for a good laugh and a great time. Thanks for sharing that golden personality with us! ✌️😁 I\'ll always be wishing you the best!',
+	},
+	{
+		from: 'TomtheIronMan',
+		text: '“Oh man, I’m gonna be #FreakinIt” - every time playing RE2',
+	},
+	{
+		from: 'TomtheIronMan',
+		text: '"All my cards are ASS"',
+	},
+	{
+		from: 'ZbotZero',
+		text: 'I like porple',
+	},
+	{
+		from: 'ZbotZero',
+		text: '“She’s gonna cry happy again”',
+	},
+	{
+		from: 'ZbotZero',
+		text: 'We pulling out the big tears every time',
+	},
+	{
+		from: 'Lethia',
+		text: 'Dear Aurelia, THANK YOU FOR BEING SUCH A FANTASTIC GENMATE!!! You are so freaking talented, and I am floored by both the caliber of your content and how many talents you have. Singing? ✅  Sewing? ✅ Being V-Moe\'s lil freak? ✅ ✅ ✅  I could not imagine Moe-Kyun without you my dear alien. HERE\'S TO MORE SHENANIGANS YIPPEE!!!! 🥳 🥳',
+	},
+	{
+		from: 'Lethia',
+		text: 'What\'s an alien\'s favorite holiday treat? Hot cocoa with martian-mellows!!! 👽 ☕',
+	}
+];
+
+
+================================================================================
+File: src\classes\Game.js
+================================================================================
+/*
+	Game.js
+	-------
+
+	This is the main file that provides a class for controlling our game.
+
+	This will handle all the state, including the hidden cats & gatcha pulls.
+*/
+
+// vue
+import { ref, shallowRef } from 'vue';
+
+// app imports
+import ThreeScene from './ThreeScene';
+import RaycasterManager from './RaycasterManager';
+import ToastManager from './ToastManager';
+import PresentUnboxing from './PresentUnboxing';
+import CapsuleAnimator from './CapsuleAnimator';
+import PullCameraAnimator from './PullCameraAnimator';
+
+// import our data
+import { cats, gatchaQuotes } from './Data';
+
+// main export
+export class Game {
+
+	// some static constants for game state & modes
+	static MODE = {
+		LOADING: 0,
+		UNPACKING: 10,
+		PLAYING: 20,
+	};
+
+	static MENU = {
+		CATS: 0,
+		GATCHA: 10,
+	};
+
+
+	/**
+	 *
+	 * @param {ThreeScene} scene - reference to the ThreeJS scene that was
+	 * @param {ToastManager} toastManager - reference to the ToastManager
+	 * @param {ModalManager} modalManager - reference to the ModalManager
+	 * @param {BGMPlayer} bgmPlayer - reference to the BGMPlayer
+	 */
+	constructor(scene, toastManager, modalManager, bgmPlayer){
+
+		// save our scene & state managers
+		this.scene = scene;
+		this.toastManager = toastManager;
+		this.modalManager = modalManager;
+		this.bgmPlayer = bgmPlayer;
+
+		// load some sfx for the game
+		this.heySound = new Audio('assets/sfx/hey.mp3');
+		this.yaySound = new Audio('assets/sfx/yay.mp3');
+		this.gatchaWoosh = new Audio('assets/sfx/gatcha_woosh.mp3');
+		this.woosh = new Audio('assets/sfx/unwrap.mp3');
+
+		// true until scene is ready
+		this.mode = ref(Game.MODE.LOADING);
+
+		// arrays of which cats we've & which gatcha quotes we've seen
+		this.foundCats = shallowRef([]);
+		this.gatchaQuotesSeen = shallowRef([]);
+
+		// true if one of our menus is open
+		this.catsMenuOpen = ref(false);
+		this.gatchaMenuOpen = ref(false);
+
+		// true when all cats / gatcha quotes have been found
+		this.allCatsFound = ref(false);
+		this.allGatchaQuotesFound = ref(false);
+
+		// if we get a cat or pull, well show a number on the menu icons
+		// based on how many we found since the last time they opened the menu
+		this.catsMenuCount = ref(0);
+		this.gatchaMenuCount = ref(0);
+
+		// the number of pulls the user has unlocked
+		this.gatchaPulls = ref(0);
+
+		// true after we have at least one pull
+		this.gatchaUnlocked = ref(false);
+
+		// true when we're doing a gatcha pull & separate variable to hide UI during pull
+		this.doingPull = ref(false);
+		this.hideUI = ref(false);
+
+		// true during pull camera animation
+		this.doingPullCameraAnimation = ref(false);
+
+		// true during capsule animation
+		this.doingCapsuleAnimation = ref(false);
+
+		// the picked quote
+		this.pickedQuote = shallowRef(null);
+
+		// initialize our game
+		this.initGame();
+
+		// wait for our scene to be ready before we start the game
+		scene.ifOrWhenSceneIsReady(() => {
+			this.beginGame();
+		});
+	}
+
+
+	/**
+	 * This function will initialize the game and also reset the game if we want to play again.
+	 */
+	initGame(){
+
+		// copy our raw data & add the "found" property
+		this.foundCats.value = cats.map((cat, i) => {
+			return {
+				...cat,
+				id: `cat_${i}`,
+				found: false,
+			};
+		});
+
+		// reset the gatcha quotes
+		let quotes = gatchaQuotes.map((quote, i) => {
+			return {
+				...quote,
+				id: `quote_${i}`,
+				found: false,
+			};
+		});
+
+		// scramble the quotes
+		quotes = quotes.sort(() => Math.random() - 0.5);
+		this.gatchaQuotesSeen.value = quotes;
+
+		// reset these variables to defaults
+		this.allCatsFound.value = false;
+		this.allGatchaQuotesFound.value = false;
+		this.catsMenuCount.value = 0;
+		this.gatchaMenuCount.value = 0;
+		this.gatchaPulls.value = 0;
+		this.gatchaUnlocked.value = false;
+		this.doingPull.value = false;
+	}
+
+
+	/**
+	 * This will play one of the sounds we build in the constructor
+	 *
+	 * @param {Audio} sound - one of the Audio objects we built in the constructor
+	 */
+	playSound(sound){
+
+		// reset the sound and play it
+		sound.currentTime = 0;
+		sound.play();
+	}
+
+
+	/**
+	 * This function will start the game
+	 */
+	beginGame(){
+
+		// begin unpacking the snow globe
+		this.mode.value = Game.MODE.UNPACKING;
+
+		//show first modal w/ sound
+		this.playSound(this.heySound);
+		this.modalManager.showModal('Click the present to unwrap it!', 'Hey You!', () => {
+			this.mode.value = Game.MODE.UNPACKING;
+
+			// enable for debug (skip unpacking for now)
+			// this.mode.value = Game.MODE.PLAYING;
+			// this.scene.$('#GiftBox').visible = false;
+		});
+
+		// set up a raycaster looking for our cats
+		setTimeout(()=>{
+
+			// get the present object from the scene & make sure present is visible
+			const presentObjs = this.scene.$('#GiftBox').children;
+			this.scene.$('#GiftBox').visible = true;
+
+			// make a new PresentUnboxing object
+			this.presentUnboxing = new PresentUnboxing(presentObjs, this.scene, () => {
+
+				// set play mode
+				this.mode.value = Game.MODE.PLAYING;
+
+				// mix up the particles a bit
+				this.scene.particleSystem.stirUpParticles(.2);
+
+				// hide the present parts
+				this.scene.$('#GiftBox').visible = false;
+
+				//show kitteh modal
+				this.playSound(this.heySound);
+				this.modalManager.showModal('Find some hidden kitties!', 'Hey You!', () => {
+
+				});
+
+			});
+
+			// build the raycaster to find cats
+			this.buildKittehRaycaster();
+
+			// build a camera animator for when we do gatcha pulls later on
+			this.pullCameraAnimator = new PullCameraAnimator(this.scene.pullCamera, this.scene.$('.f_targ'), 2, 0.75, 1.2);
+
+			// build a capsule animator for when we do gatcha pulls later on
+			this.capsuleAnimator = new CapsuleAnimator(this.scene.$('#Capsule').children, this.scene, () => {});
+
+		}, 500);
+	}
+
+
+	/**
+	 * Build a ray caster that responds to hidden kittehs
+	 */
+	buildKittehRaycaster(){
+
+		// this will be a new RaycasterManager that will look for our cats
+		this.catRaycaster = new RaycasterManager(this.scene);
+
+		// filter the raycaster to only look for cats
+		const filter = [
+			...this.scene.$('.cat'),
+		];
+		this.catRaycaster.setFilter(filter);
+
+		// wait for hits on cats
+		this.catRaycaster.onHit((hit)=>{
+
+			// if we're not in playing mode, GTFO
+			if(this.mode.value !== Game.MODE.PLAYING)
+				return;
+
+			// our hit object might have userData.name with a #catName,
+			// or it might be a child of a cat object
+			// so recursively find the cat object's name
+			let catObjectName = hit.object.userData.name;
+			while(!catObjectName){
+				hit.object = hit.object.parent;
+				catObjectName = hit.object.userData.name;
+
+				// escape if we have no parent
+				if(!hit.object.parent)
+					break;
+			}// wend
+
+			// if we found a cat, call the findCat function
+			if(catObjectName){
+
+				// the name might be a raw string, but it might also look like "#catName .class1 .class2"
+				catObjectName = catObjectName.split(' ')[0].replace('#', '').toLowerCase();
+
+				// make sure this is in our list of cats from the imported data
+				if(cats.find(cat => cat.object.toLowerCase() === catObjectName))
+					this.findCat(catObjectName);
+			}
+		});
+
+	}
+
+
+	/**
+	 * Shows or toggles one of our game menus
+	 *
+	 * @param {Number} menu - one of the Game.MENU constants
+	 */
+	showMenu(menu){
+
+		// play the woosh sound for menus
+		this.playSound(this.woosh);
+
+		// if cats menu is open and we're trying to open it again, close it
+		if(menu === Game.MENU.CATS && this.catsMenuOpen.value){
+			this.catsMenuOpen.value = false;
+			return;
+		}
+
+		// if gatcha menu is open and we're trying to open it again, close it
+		if(menu === Game.MENU.GATCHA && this.gatchaMenuOpen.value){
+			this.gatchaMenuOpen.value = false;
+			return;
+		}
+
+		// if either menu is open, close both
+		if(this.catsMenuOpen.value || this.gatchaMenuOpen.value){
+			this.catsMenuOpen.value = false;
+			this.gatchaMenuOpen.value = false;
+		}
+
+		// open the requested menu
+		if(menu === Game.MENU.CATS){
+			this.catsMenuOpen.value = true;
+			this.catsMenuCount.value = 0;
+		}
+		else if(menu === Game.MENU.GATCHA){
+			this.gatchaMenuOpen.value = true;
+			this.gatchaMenuCount.value = 0;
+		}
+	}
+
+
+	/**
+	 * This function will be called when the user clicks on a cat in the scene.
+	 *
+	 * @param {String} catObjectName - the name of the cat object in the scene
+	 */
+	findCat(catObjectName){
+
+		// the name might be a raw string, but it might also look like "#catName .class1 .class2"
+		// so we need to process it if a hash is present
+		catObjectName = catObjectName.split(' ')[0].replace('#', '').toLowerCase();
+
+		// get the list of cats we already have
+		const foundCats = this.foundCats.value;
+
+		// find the cat in our list & set it to true
+		const foundCat = foundCats.find(cat => cat.object.toLowerCase() === catObjectName);
+
+		// if it was already found, ignore it
+		if(foundCat.found)
+			return;
+
+		// mark the cat as found
+		foundCat.found = true;
+
+		// clear the list & reset it
+		this.foundCats.value = [];
+		this.foundCats.value = foundCats;
+
+		// check if all cats are found
+		this.allCatsFound.value = foundCats.every(cat => cat.found);
+
+		// if the cats menu is closed, increment its bubble counter
+		if(this.catsMenuOpen.value === false)
+			this.catsMenuCount.value++;
+
+		// in the public folder /assets/sfx/ there's a meow.mp3 file
+		// play that sound now
+		const audio = new Audio('assets/sfx/meow.mp3');
+		audio.play();
+
+		/*
+			There's only 12 cats in the cats array.
+
+			However, the array of quotes to pull can change as we add/remove them to the data.js file.
+
+			Therefore, we should do two things:
+			- when you find a cat, give the player totalQuotes/12 gatcha pulls, rounded down (i.e. floor(totalQuotes/12))
+			- when the player finds the last cat, the might not have enough pulls to get all the quotes
+			- so, when the player finds the last cat, we'll give them enough pulls to get all the quotes
+		*/
+		const totalQuotes = gatchaQuotes.length;
+		let pullsToAdd = Math.floor(totalQuotes/12);
+		this.gatchaPulls.value += pullsToAdd;
+
+		// gatcha always unlocked if at least one cat found
+		this.gatchaUnlocked.value = true;
+
+		// if we found all the cats, show the modal
+		if(this.allCatsFound.value){
+			this.playSound(this.yaySound);
+			this.modalManager.showModal('You found all the kittehs!', 'Congratulations!');
+
+			// figure out how many quotes we still have unseen
+			const quotes = this.gatchaQuotesSeen.value;
+			const unseenQuotes = quotes.filter(quote => !quote.found);
+
+			// calc the difference so the toast is correct
+			pullsToAdd = unseenQuotes.length - this.gatchaPulls.value;
+
+			// if we have more unseen quotes than pulls, give the player enough pulls to get them all
+			if(unseenQuotes.length > this.gatchaPulls.value)
+				this.gatchaPulls.value = unseenQuotes.length;
+		}
+
+		// show a toast message
+		this.toastManager.showToastMsg(`You found ${foundCat.name} Kitteh!`, `+${pullsToAdd} Gatcha Pulls!`);
+
+		// if we found all the quotes, clear pulls
+		if(this.allGatchaQuotesFound.value){
+			this.gatchaPulls.value = 0;
+		}
+	}
+
+
+	/**
+	 * Starts gatcha pull animate sequence
+	 */
+	doPull(){
+
+		// gtfo if no pulls
+		if(this.gatchaPulls.value < 1)
+			return;
+
+		// if we're already doing a pull, ignore
+		if(this.doingPull.value)
+			return;
+
+		// play the gatcha woosh sound
+		this.playSound(this.gatchaWoosh);
+
+		// decrement the pulls
+		this.gatchaPulls.value--;
+
+		// show the gatcha menu
+		this.doingPull.value = true;
+
+		// play the gatcha theme in a short time
+		setTimeout(()=>{
+			this.bgmPlayer.playGatchaTheme();
+		}, 750);
+
+		// hide the UI after 1 second
+		setTimeout(()=>{
+			this.hideUI.value = true;
+		}, 1000);
+
+		// wait for our CSS curtain animation to finish before we continue
+		setTimeout(()=>{
+
+			// start the pull camera animation
+			this.doingPullCameraAnimation.value = true;
+			this.scene.setCamera(this.scene.pullCamera);
+			this.pullCameraAnimator.start(() => {
+
+				this.doingPullCameraAnimation.value = false;
+				this.scene.setCamera(this.scene.capsuleCamera);
+
+				// start the capsule animation
+				this.doingCapsuleAnimation.value = true;
+				this.capsuleAnimator.start(() => {
+
+					this.doingCapsuleAnimation.value = false;
+
+					// check if forceFirst
+					// pick a random quote we haven't seen yet
+					this.pickRandomQuote();
+				});
+			});
+
+		}, 1400);
+
+	}
+
+
+	/**
+	 * Picks a random quote from the gatchaQuotesSeen array
+	 */
+	pickRandomQuote(){
+
+		// so we want to pick the quote that has force_first set true if we haven't seen it yet
+		// otherwise, pick a random one we haven't seen yet
+		const quotes = this.gatchaQuotesSeen.value;
+
+		// get the first quote that has force_first set true
+		let quote = quotes.find(quote => quote.force_first && !quote.found);
+
+		// if we didn't find one, pick a random one, make sure its a random not just the next available one
+		if(!quote){
+			const unseenQuotes = quotes.filter(quote => !quote.found);
+			quote = unseenQuotes[Math.floor(Math.random() * unseenQuotes.length)];
+		}
+
+
+		if(quote){
+			quote.found = true;
+			this.gatchaQuotesSeen.value = [];
+			this.gatchaQuotesSeen.value = quotes;
+
+			this.pickedQuote.value = quote;
+
+			// if the gatcha menu is closed, increment its bubble counter
+			if(this.gatchaMenuOpen.value === false)
+				this.gatchaMenuCount.value++;
+
+			// check if we found all the quotes
+			this.allGatchaQuotesFound.value = quotes.every(quote => quote.found);
+
+			// if so, zero out the pulls
+			if(this.allGatchaQuotesFound.value){
+				this.playSound(this.yaySound);
+				this.modalManager.showModal('You found all the quotes!', 'Congratulations!');
+				this.gatchaPulls.value = 0;
+			}
+		}
+
+	}
+
+
+	/**
+	 * Completes the gatcha pull sequence & closes the UI / resets variables
+	 */
+	completePull(){
+
+		this.capsuleAnimator.resetAnimations();
+		this.doingPull.value = false;
+		this.hideUI.value = false;
+		this.scene.setCamera(this.scene.camera);
+		this.pickedQuote.value = null;
+	}
+
+}
+
+
+================================================================================
+File: src\classes\ModalManager.js
+================================================================================
+/*
+	ModalManager.js
+	---------------
+
+	This file is similar to ToastManager.js, but for modals.
+
+	This file provides a class that can allow one or more simple {title, messsage}
+	models to be shown and queued if one is already visible.
+*/
+
+// vue
+import { ref } from 'vue';
+
+
+// main class to export
+class ModalManager {
+
+	/**
+	 * Constructs the ModalManager
+	 */
+	constructor() {
+
+		// Ref variable to hold the current modal content
+		this.currentMessage = ref({ message: '', title: '' });
+
+		// Ref to track whether a modal is open
+		this.modalIsOpen = ref(false);
+
+		// Array to queue the modal requests
+		this.modalQueue = [];
+
+		// Store the current modal's callback
+		this.currentCallback = null;
+	}
+
+
+	/**
+	 * Shows a modal message immediately, or queues it if one is already open
+	 *
+	 * @param {String} message - message to display on the modal
+	 * @param {String} title - [optional] title of the modal
+	 * @param {Function} callback - [optional] callback to execute when the modal is closed
+	 */
+	showModal(message, title = '', callback = null) {
+
+		// Create the modal object
+		const modal = { message, title, callback };
+
+		if (!this.modalIsOpen.value) {
+
+			// If no modal is currently shown, show this one
+			this.setCurrentModal(modal);
+		} else {
+
+			// Otherwise, add to the queue
+			this.modalQueue.push(modal);
+		}
+	}
+
+	/**
+	 * Shows a modal message immediately, or queues it if one is already open
+	 *
+	 * @param {Object} modal - like { message: 'message', title: 'title', callback: function }
+	 */
+	setCurrentModal(modal) {
+		this.currentMessage.value = { message: modal.message, title: modal.title };
+		this.currentCallback = modal.callback;
+		this.modalIsOpen.value = true;
+	}
+
+
+	/**
+	 * Closes the modal
+	 *
+	 * @param {*} parameter - could be whatever data you want to pass back to the callback
+	 */
+	closeModal(parameter) {
+
+		// Execute the callback if present
+		if (this.currentCallback) {
+			this.currentCallback(parameter);
+		}
+
+		// Close the modal
+		this.modalIsOpen.value = false;
+
+		// Delay half a second before showing the next modal, if any
+		if (this.modalQueue.length > 0) {
+			setTimeout(() => {
+				this.setCurrentModal(this.modalQueue.shift());
+			}, 500);
+		}
+	}
+}
+
+export default ModalManager;
+
+
+================================================================================
+File: src\classes\PresentUnboxing.js
+================================================================================
+/*
+	PresentUnboxing.js
+	------------------
+
+	This file will provide a class that just handles the unboxing of the present object.
+
+	This will consolidate the logic of unboxing a present and showing the message to the user.
+*/
+
+// three
+import * as THREE from 'three';
+
+// our raycaster manager
+import RaycasterManager from './RaycasterManager';
+import ThreeScene from './ThreeScene';
+
+// app
+import { Game } from './Game';
+
+// main class for unboxing
+class PresentUnboxing {
+
+	/**
+	 * Constructs our PresentUnboxing class
+	 * @param {THREE.Object3D[]} presentObjects - the array of objects to unbox
+	 * @param {ThreeScene} scene - the scene to add the raycaster to
+	 * @param {Function} onComplete - method to call when the unboxing is complete
+	 */
+	constructor(presentObjects, scene, onComplete) {
+
+		// save the scene, present object & callback
+		this.threeScene = scene;
+		this.presentObjs = presentObjects;
+		this.onComplete = onComplete;
+
+		// set up our state
+		this.currentStep = 0;
+		this.isAnimating = false;
+
+		// load the unwrapping sound at assets/sfx/unwrap.mp3
+		this.unwrappingSound = new Audio('assets/sfx/unwrap.mp3');
+		this.gatchaWoosh = new Audio('assets/sfx/gatcha_woosh.mp3');
+
+		// define the steps including their shape keys & durations
+		this.steps = [
+			{ key: 'Bow_Off', duration: 0.6 },
+			{ key: ['Ribbon_A_1', 'Ribbon_A_2'], duration: [0.3, 0.5], sequential: true },
+			{ key: ['Ribbon_B_1', 'Ribbon_B_2'], duration: [0.3, 0.5], sequential: true },
+			{ key: 'Lid_Off', duration: 0.7 },
+			{ key: 'Box_Off', duration: 0.7 }
+		];
+
+		// make our raycasting code to detect clicks on the present
+		this.buildPresentRaycaster();
+	}
+
+
+	/**
+	 * Builds the raycaster to detect clicks on the present
+	 * and advances to the next step when clicked
+	 */
+	buildPresentRaycaster() {
+
+		// make a raycaster to check for clicking the present
+		this.raycaster = new RaycasterManager(this.threeScene);
+		const filter = [this.threeScene.$('#GiftBox')];
+		this.raycaster.setFilter(filter);
+
+		// listen for a click on the present
+		// wait for hits on cats
+		this.raycaster.onHit((hit)=>{
+
+			// our hit object might have userData.name with a #catName,
+			// or it might be a child of a cat object
+			// so recursively find the cat object's name
+			let objectName = hit.object.userData.name;
+			while(!objectName){
+				hit.object = hit.object.parent;
+				objectName = hit.object.userData.name;
+
+				// escape if we have no parent
+				if(!hit.object.parent)
+					break;
+			}// wend
+
+			// if we found a cat, call the findCat function
+			if(objectName){
+
+				// the name might be a raw string, but it might also look like "#catName .class1 .class2"
+				objectName = objectName.split(' ')[0].replace('#', '').toLowerCase();
+
+				// do next step if we matched the present gift box
+				if(objectName === 'giftbox')
+					this.nextStep();
+			}
+		});
+	}
+
+
+	/**
+	 * Advances to the next step in the unboxing
+	 */
+	nextStep() {
+
+		// gtfo if we're still animating or we're done
+		if (this.isAnimating || this.currentStep >= this.steps.length) return;
+
+		// set the animating flag
+		this.isAnimating = true;
+
+
+		// start the zoom out if we're on the last step
+		if (this.currentStep === this.steps.length - 1) {
+			this.zoomIn(1, ()=>{});
+		}
+
+		// reset and play the unwrapping sound
+		this.unwrappingSound.currentTime = 0;
+		this.unwrappingSound.play();
+
+		// get the step details
+		const step = this.steps[this.currentStep];
+		const animateSequentially = (index) => {
+
+			// get the animation key details
+			const key = step.key[index];
+			const duration = step.duration[index] * 1000;
+
+			// start counting from now
+			let startTime = Date.now();
+			const animate = () => {
+
+				// get the delta time & normalize for this key/step
+				const elapsedTime = Date.now() - startTime;
+				const progress = Math.min(elapsedTime / duration, 1);
+
+				this.presentObjs.forEach((obj) => {
+					const morphTargetIndex = obj.morphTargetDictionary[key];
+					if (morphTargetIndex !== undefined) {
+						obj.morphTargetInfluences[morphTargetIndex] = progress;
+					}
+				});
+
+				if (progress < 1) {
+					requestAnimationFrame(animate);
+				} else if (index + 1 < step.key.length) {
+
+					// Start next animation in the sequence
+					animateSequentially(index + 1);
+
+				} else {
+
+					// End of this step's animations
+					this.isAnimating = false;
+					this.currentStep++;
+					if (this.currentStep === this.steps.length) {
+
+						if(this.onComplete && typeof this.onComplete === 'function')
+							this.onComplete();
+					}
+				}
+			};
+			animate();
+		};
+
+		// start the animation sequence
+		if (step.sequential) {
+			animateSequentially(0);
+
+		} else {
+
+			// get the keys & duration
+			const keys = Array.isArray(step.key) ? step.key : [step.key];
+			const duration = Array.isArray(step.duration) ? step.duration[0] * 1000 : step.duration * 1000;
+			let startTime = Date.now();
+
+			const animate = () => {
+				const elapsedTime = Date.now() - startTime;
+				const progress = Math.min(elapsedTime / duration, 1);
+
+				keys.forEach((key, idx) => {
+					this.presentObjs.forEach((obj) => {
+						const morphTargetIndex = obj.morphTargetDictionary[key];
+						if (morphTargetIndex !== undefined) {
+							obj.morphTargetInfluences[morphTargetIndex] = progress;
+						}
+					});
+				});
+
+				if (progress < 1) {
+					requestAnimationFrame(animate);
+				} else {
+					this.isAnimating = false;
+					this.currentStep++;
+					if (this.currentStep === this.steps.length) {
+
+						if(this.onComplete && typeof this.onComplete === 'function')
+							this.onComplete();
+					}
+				}
+			};
+			animate();
+		}
+	}
+
+
+	/**
+	 * Resets the unboxing
+	 */
+	reset() {
+
+		// reset the state
+		this.currentStep = 0;
+		this.isAnimating = false;
+
+		// reset the morph target influences
+		this.presentObj.morphTargetInfluences.forEach((_, i) => {
+			this.presentObj.morphTargetInfluences[i] = 0;
+		});
+	}
+
+
+
+	/**
+	 * Zoom into the globe after the unboxing
+	 *
+	 * @param {Number} duration - the duration of the zoom in seconds
+	 * @param {Function } onComplete - the method to call when the zoom is complete
+	 */
+	zoomIn(duration, onComplete) {
+
+		// play the zoom sfx
+		this.gatchaWoosh.currentTime = 0;
+		this.gatchaWoosh.play();
+
+		// Get the current zoom level
+		const startZoom = this.threeScene.camera.zoom;
+
+		// Adjust this factor to control how much the camera zooms in
+		const endZoom = startZoom * 2;
+		const startTime = Date.now();
+		const endTime = startTime + duration * 1000;
+
+		// recursively animate the zoom
+		const animateZoom = () => {
+
+
+			const currentTime = Date.now();
+			const elapsed = currentTime - startTime;
+			if (elapsed < duration * 1000) {
+
+				// Calculate the current frame's zoom level using linear interpolation
+				const t = THREE.MathUtils.smoothstep((elapsed / (duration * 1000)), 0, 1);
+				let zoom = startZoom + (endZoom - startZoom) * (t);
+
+
+				// Update the camera's zoom level and update the controls
+				this.threeScene.camera.zoom = zoom;
+				this.threeScene.camera.updateProjectionMatrix();  // Make sure to update the camera's matrix
+				this.threeScene.controls.update();  // Update the controls to reflect the new camera properties
+
+				requestAnimationFrame(animateZoom);  // Continue the animation
+			} else {
+
+				// Set final zoom state to ensure it's exactly at endZoom
+				this.threeScene.camera.zoom = endZoom;
+				this.threeScene.camera.updateProjectionMatrix();
+				this.threeScene.controls.update();
+
+				if (onComplete && typeof onComplete === 'function') {
+					onComplete();
+				}
+			}
+		};
+
+		requestAnimationFrame(animateZoom);  // Start the animation
+	}
+
+}
+
+export default PresentUnboxing;
+
+
+================================================================================
+File: src\classes\PullCameraAnimator.js
+================================================================================
+/*
+	PullCameraAnimator.js
+	---------------------
+
+	This file provides a class that animates the camera around various
+	focus points in the scene to build hype during the pull animation.
+*/
+
+// three
+import * as THREE from 'three';
+import TWEEN from '@tweenjs/tween.js';
+
+// main class export
+class PullCameraAnimator {
+
+	/**
+	 * Constructs the PullCameraAnimator
+	 *
+	 * @param {THREE.Camera} camera - the camera to animate
+	 * @param {THREE.Object3D[]} targets - array of targets to focus on
+	 * @param {Number} sweepCount - how many times to sweep the camera
+	 * @param {Number} sweepLength - how long each sweep should take in seconds
+	 * @param {Number} startScale - how far back to start the camera
+	 */
+	constructor(camera, targets, sweepCount, sweepLength, startScale) {
+
+		// save our parameters
+		this.camera = camera;
+		this.targets = targets;
+		this.sweepCount = sweepCount;
+		this.startScale = startScale;
+
+		// always shuffle targets list once on start up
+		this.targets.sort(() => Math.random() - 0.5);
+
+		// convert seconds to milliseconds while we're at it
+		this.sweepLength = sweepLength * 1000;
+
+		// keep track of the last target we used so we can make sure to loop through all of them
+		this.lastTargetIndex = -1;
+
+		// used for animation state
+		this.currentSweep = 0;
+		this.animating = false;
+		this.activeTweens = [];
+	}
+
+
+	/**
+	 * Starts the pull animation sequence
+	 *
+	 * @param {Function} onComplete - the method to call when the animation is complete
+	 */
+	start(onComplete) {
+
+		// save our callback
+		this.onComplete = onComplete;
+
+		// reset our state
+		this.currentSweep = 0;
+		this.animating = true;
+
+		// this will start a sequence of sweeps
+		this.nextSweep();
+
+		// this will animate our tweens on every frame
+		this.animate();
+	}
+
+
+	/**
+	 * Gets a random target and child to focus on
+	 *
+	 * @returns {Object} - the target and child to focus on
+	 */
+	getRandomTarget() {
+
+		// increment the target index
+		this.lastTargetIndex++;
+
+		// if we've looped through all the targets, reset the index, and shuffle the array
+		if (this.lastTargetIndex >= this.targets.length) {
+			this.lastTargetIndex = 0;
+			this.targets.sort(() => Math.random() - 0.5);
+		}
+
+		const target = this.targets[this.lastTargetIndex];
+		const childIndex = Math.floor(Math.random() * target.children.length);
+		const child = target.children[childIndex];
+
+		return { target, child };
+	}
+
+
+	/**
+	 * Starts the next sweep of the camera
+	 */
+	nextSweep() {
+
+		// if we have more sweeps to do
+		if (this.currentSweep < this.sweepCount) {
+
+			// pick a random target and child
+			const { target, child } = this.getRandomTarget();
+
+			// get the world positions of the target and child
+			const targetWorldPosition = new THREE.Vector3();
+			target.getWorldPosition(targetWorldPosition);
+			const childWorldPosition = new THREE.Vector3();
+			child.getWorldPosition(childWorldPosition);
+
+			// calculate the direction and start/end positions
+			const direction = new THREE.Vector3().subVectors(targetWorldPosition, childWorldPosition);
+			const start = new THREE.Vector3().subVectors(targetWorldPosition, direction.multiplyScalar(this.startScale));
+			const end = childWorldPosition;
+
+			// set the camera position and look at the target
+			this.camera.position.copy(start);
+			this.camera.lookAt(targetWorldPosition);
+			const initialRotation = this.camera.rotation.clone();
+
+			// create a tween to rotate the camera's roll angle
+			const rollAngleMax = 7;
+			const rollAngle = Math.random() > 0.5 ? initialRotation.z + THREE.MathUtils.degToRad(rollAngleMax) : initialRotation.z - THREE.MathUtils.degToRad(rollAngleMax);
+			const rotationTween = new TWEEN.Tween(this.camera.rotation)
+				.to({ z: rollAngle }, this.sweepLength)
+				.yoyo(true)
+				.repeat(1);
+
+			// create a tween to move the camera to the target
+			const positionTween = new TWEEN.Tween(this.camera.position)
+				.to({ x: end.x, y: end.y, z: end.z }, this.sweepLength)
+				.onComplete(() => {
+					this.currentSweep++;
+					this.nextSweep();
+				});
+
+			// save & start the tweens
+			this.activeTweens.push(rotationTween, positionTween);
+			rotationTween.start();
+			positionTween.start();
+
+		// if we're done
+		} else {
+
+			// reset our state
+			this.animating = false;
+			this.activeTweens = [];
+			if (this.onComplete) {
+				this.onComplete();
+			}
+		}
+	}
+
+
+	/**
+	 * Recursive frame-by-frame animation method
+	 */
+	animate() {
+		const loop = () => {
+			if (this.animating) {
+				requestAnimationFrame(loop);
+				this.activeTweens.forEach(tween => tween.update());
+			}
+		};
+		loop();
+	}
+}
+
+export default PullCameraAnimator;
+
+
+================================================================================
+File: src\classes\RaycasterManager.js
+================================================================================
+/*
+	RaycasterManager.js
+	-------------------
+
+	This file provides a class that abstracts some of the Raycasting logic for ThreeJS,
+	so we can write the rest of the game more easier.
+*/
+
+// three
+import * as THREE from 'three';
+
+// app
+import ThreeScene from './ThreeScene';
+
+// RaycasterManager class
+class RaycasterManager {
+
+	/**
+	 * Constructs the raycaster manager
+	 * @param {ThreeScene} threeScene - reference to our games scene
+	 */
+	constructor(threeScene) {
+
+		// save our ThreeScene & break out it's components
+		this.threeScene = threeScene;
+
+		// true if we're enabled for raycasting
+		this.enabled = true;
+
+		// wait for our scene to be ready
+		this.threeScene.ifOrWhenSceneIsReady(this.onReady.bind(this));
+
+		// create a raycaster & mouse vector
+		this.raycaster = new THREE.Raycaster();
+		this.mouse = new THREE.Vector2();
+
+		// array of listeners for hits
+		this.listeners = [];
+
+		// optional filter for objects to raycast against
+		this.baseFilter = null;
+		this.filter = null;
+	}
+
+
+	/**
+	 * When our ThreeScene is ready we can save these variables locally
+	 */
+	onReady(){
+
+		// save our scene, camera, renderer & container
+		this.scene = this.threeScene.scene;
+		this.camera = this.threeScene.camera;
+		this.renderer = this.threeScene.renderer;
+		this.container = this.threeScene.renderContainer;
+
+		// Bind the click handler now that we have all the refs we need
+		this.container.addEventListener('click', this.onClick.bind(this));
+	}
+
+
+	/**
+	 * Handle when our ThreeJS container is clicked so we can do the RayCast logic
+	 *
+	 * @param {MouseEvent} event - The JavaScript event
+	 */
+	onClick(event) {
+
+		// if we're not enabled, don't do anything
+		if (!this.enabled) return;
+
+		// Calculate mouse position in normalized device coordinates (-1 to +1)
+		const rect = this.container.getBoundingClientRect();
+		this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+		this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+		// Update the picking ray with the camera and mouse position
+		this.raycaster.setFromCamera(this.mouse, this.camera);
+
+		// Calculate objects intersecting the picking ray
+		const filterBaseObject = this.baseObject ? this.baseObject.children : this.scene.children;
+		const intersects = this.raycaster.intersectObjects(filterBaseObject);
+
+		// Filter the intersects if a filter is set
+		const filteredIntersects = this.filter ?
+			intersects.filter(intersect => this.filter.includes(intersect.object)) :
+			intersects;
+
+		// If there's a hit, call all listeners with the first intersected object
+		if (filteredIntersects.length > 0) {
+			for (const listener of this.listeners) {
+				listener(filteredIntersects[0]);
+			}
+		}
+	}
+
+
+	/**
+	 * Set the object we use for the ray caster base object
+	 *
+	 * @param {THREE.Object3D} baseObject - the ThreeJS object
+	 */
+	setBaseFilter(baseObject){
+		this.baseFilter = baseObject;
+	}
+
+
+	/**
+	 * If we want to filter the objects we raycast against, we can set them here
+	 *
+	 * @param {Array|Object3D} objects - The objects to filter against
+	 */
+	setFilter(objects) {
+
+		// objects will be an array of ThreeJS Groups. Recursively flatten all the children into this.filter
+		if (Array.isArray(objects)) {
+			this.filter = objects.reduce((acc, obj) => {
+				acc.push(...obj.children);
+				return acc;
+			}, []);
+		} else {
+			this.filter = [objects];
+		}
+
+	}
+
+
+	/**
+	 * Allow subscribers to listen to hits from this Raycaster
+	 *
+	 * @param {Function} callback - call back function for when we find a hit
+	 */
+	onHit(callback) {
+		if (typeof callback === 'function') {
+			this.listeners.push(callback);
+		} else {
+			throw new Error('Callback must be a function.');
+		}
+	}
+
+}
+
+export default RaycasterManager;
+
+
+================================================================================
+File: src\classes\SnowGlobeParticleSystem.js
+================================================================================
+/*
+	SnowGlobeParticleSystem.js
+	--------------------------
+
+	This file provides a class that extends the ThreeJS Object3D class.
+
+	This class will be our particle for the snow globe.
+*/
+
+// ThreeJS Imports
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
+// main export
+export class SnowGlobeParticleSystem extends THREE.Object3D {
+
+	/**
+	 * Builds our snow globe particle system
+	 *
+	 * @param {Number} particleCount - how many particles to create & simulate
+	 * @param {Number} radius - radius of the snow globe
+	 * @param {THREE.Camera} camera - the camera to follow for shaking simulation
+	 * @param {OrbitControls} controls - the controls to listen to for shaking simulation
+	 */
+	constructor(particleCount, radius, camera, controls) {
+
+		// always call this when extending
+		super();
+
+		// save our initial values
+		this.particleCount = particleCount;
+		this.radius = radius;
+		this.camera = camera;
+		this.controls = controls;
+
+		// create a group to hold our particles
+		this.particles = new THREE.Group();
+
+		// initialize the particles & add them to our base object
+		this.initParticles();
+		this.add(this.particles);
+
+		// React to control changes to simulate shaking
+		this.previousCameraPosition = new THREE.Vector3().copy(camera.position);
+		controls.addEventListener('change', this.onControlsChange.bind(this));
+	}
+
+
+	/**
+	 * Initializes the particles in the snow globe
+	 */
+	initParticles() {
+
+		// create a new buffer geometry to hold our particles
+		const geometry = new THREE.BufferGeometry();
+
+		// create arrays to hold our positions & velocities
+		const positions = [];
+		const velocity = [];
+
+		// loop to spawn particles
+		for (let i = 0; i < this.particleCount; i++) {
+
+			// create a random vertex
+			const vertex = new THREE.Vector3(
+				(Math.random() * 2 - 1) * this.radius,
+				(Math.random() * 2 - 1) * this.radius,
+				(Math.random() * 2 - 1) * this.radius
+			);
+
+			// if the vertex is outside the radius, normalize it
+			if (vertex.length() > this.radius) {
+				vertex.normalize().multiplyScalar(this.radius);
+			}
+
+			// save position & a random initial velocity
+			positions.push(vertex.x, vertex.y, vertex.z);
+			velocity.push((Math.random() - 0.5) * 0.1, -Math.random() * 0.02, (Math.random() - 0.5) * 0.1);
+
+			// TODO: get rid of the initial velocity and use fixed random X/Z positions instead
+			// then we'll start with (0, 0, 0) for initial velocity
+			// velocity.push(0, 0, 0);
+		}
+
+		// set the position & velocity attributes
+		geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+		geometry.setAttribute('velocity', new THREE.Float32BufferAttribute(velocity, 3));
+
+		// create a new points material & system
+		const material = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.06 });
+		this.particleSystem = new THREE.Points(geometry, material);
+		this.particles.add(this.particleSystem);
+
+		// do initial shake
+		this.stirUpParticles(0.1);
+	}
+
+
+	/**
+	 * Reacts to control changes to simulate shaking
+	 */
+	onControlsChange() {
+
+		// calculate the change in camera position
+		const delta = this.camera.position.clone().sub(this.previousCameraPosition);
+
+		// calculate the intensity of the shake
+		const intensity = delta.length() * 0.05;
+		this.stirUpParticles(intensity);
+
+		// save for next time
+		this.previousCameraPosition.copy(this.camera.position);
+	}
+
+
+	/**
+	 * Stirs up the particles with a given intensity
+	 *
+	 * @param {Number} intensity - how much to stir up the particles
+	 */
+	stirUpParticles(intensity) {
+
+		const positions = this.particleSystem.geometry.attributes.position;
+		const velocities = this.particleSystem.geometry.attributes.velocity;
+
+		for (let i = 0; i < positions.count; i++) {
+
+			// apply intensity to Y with a random factor
+			velocities.setY(i, velocities.getY(i) + intensity * (Math.random() - 0.5));
+
+			// apply random X and Z
+			velocities.setX(i, velocities.getX(i) + (Math.random() - 0.5) * 0.001);
+			velocities.setZ(i, velocities.getZ(i) + (Math.random() - 0.5) * 0.001);
+
+			// cap max velocity
+			if (velocities.getY(i) > 0.1) {
+				velocities.setY(i, 0.1);
+			}
+
+			// TODO: better particle coverage
+			// if a particle is near the edge, push it back in by a random amount
+			// const x = positions.getX(i);
+			// const y = positions.getY(i);
+			// const z = positions.getZ(i);
+			// const vertex = new THREE.Vector3(x, y, z);
+			// if (vertex.length() > this.radius*0.5) {
+
+			// 	// scale it in with some random factor
+			// 	const scale = Math.random() * 0.8;
+			// 	vertex.normalize().multiplyScalar(this.radius * (1 - scale));
+			// 	positions.setXYZ(i, vertex.x, vertex.y, vertex.z);
+			// }
+		}
+
+		velocities.needsUpdate = true;
+	}
+
+
+	/**
+	 * Updates the particles
+	 */
+	update() {
+
+		// loop through all particles
+		const positions = this.particleSystem.geometry.attributes.position;
+		const velocities = this.particleSystem.geometry.attributes.velocity;
+		for (let i = 0; i < this.particleCount; i++) {
+
+			const x = positions.getX(i);
+			const y = positions.getY(i);
+			const z = positions.getZ(i);
+			const velocity = new THREE.Vector3(velocities.getX(i), velocities.getY(i), velocities.getZ(i));
+
+			let newPos = new THREE.Vector3(x, y, z).add(velocity);
+			if (newPos.length() > this.radius) {
+				newPos.normalize().multiplyScalar(this.radius);
+			}
+
+			positions.setXYZ(i, newPos.x, newPos.y, newPos.z);
+
+			// if the particle is below the ground, bounce it back up
+			const bottomLimit = -this.radius*0.995;
+			if (newPos.y < bottomLimit) {
+				velocities.setY(i, 0);
+				newPos.setY(bottomLimit);
+			}else{
+				// apply some gravity
+				velocities.setY(i, velocities.getY(i) - 0.00005);
+			}
+		}
+
+		positions.needsUpdate = true;
+	}
+
+}
+
+
+================================================================================
+File: src\classes\ThreeScene.js
+================================================================================
+/*
+	ThreeScene.js
+	-------------
+
+	This file provides the class that will build & manage the Three.js scene.
+
+	This will be instantiated in our main App.vue component & passed to the
+	various sub components that need reference to our scene.
+*/
+
+// threeJS imports
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
+// import our custom particle system, aww yiss
+import { SnowGlobeParticleSystem } from './SnowGlobeParticleSystem.js';
+
+// make ThreeJS Scene class
+export default class ThreeScene {
+
+	/**
+	 * Constructs a new ThreeScene object
+	 */
+	constructor() {
+
+		// this will be set true once the scene is completely ready (it's an async process)
+		this.isReady = false;
+
+		// while we're waiting for the scene to be ready, some listeners might be waiting
+		// we'll add their callback fns here
+		this.readyListeners = [];
+
+		// after we build our scene and imported the GLB/GLTF scene, we'll loop over it's children
+		// looking for ones with names that include #<id> or .<class> and store them in these objects
+		this.sceneObjectsByID = new Map();
+		this.sceneObjectsByClass = new Map();
+
+		// which camera to use
+		this.cameraToUse = null;
+
+		// build our ThreeJS scene (this is async b/c stuffs have to load)
+		this.buildThreeScene();
+
+		// start the animation loop
+		this.animate();
+
+	}
+
+
+	/**
+	 * All the logic specifically for making our ThreeJS scene will live in here
+	 *
+	 * The rest of this class will be used for tweaking / updating / interacting with the scene, etc.
+	 */
+	async buildThreeScene() {
+
+		// make a new scene & renderer
+		this.scene = new THREE.Scene();
+		this.renderer = new THREE.WebGLRenderer({ alpha: true });
+		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.setClearColor(0x000000, 0); // Set clear color to black with 0 alpha
+
+		// make our main camera
+		this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		const initialZoomScale = 0.75;
+		this.camera.position.z = 10 * initialZoomScale;
+		this.camera.position.y = 7 * initialZoomScale;
+
+		// initial camera to use
+		this.cameraToUse = this.camera;
+
+		// make a camera used for the pull animation zoomin'
+		this.pullCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		this.pullCamera.position.z = 10;
+		this.pullCamera.position.y = 7;
+
+		// make a camera used specifically for the capsule opening animation
+		this.capsuleCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+		this.capsuleCamera.position.z = 5;
+		this.capsuleCamera.position.y = 0;
+
+		// make a new OrbitControls
+		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+
+		// set orbit rotation to default of 40 degrees on x axis
+		this.controls.target.set(0, 0, 0);
+		this.controls.update();
+
+
+		// let's wait for the reflection map to load
+		await this.loadReflectionMap();
+
+		// let's load our scene files
+		await this.loadSceneAssets();
+
+		// loop over the children of the GLTF scene and store them in our sceneObjectsByID & sceneObjectsByClass
+		this.parseSceneObjects();
+
+		// once we've loaded our GLB/GLTF scene, we need to manually update some of the materials
+		// to use the reflection map
+		this.applyMaterialTweaks();
+
+		// set up the lights in our scene
+		this.setUpLights();
+
+		// set our our custom snow particle system
+		this.buildParticleSystem();
+
+		// now that scene is entirely built, mark it as ready
+		this.setSceneReady();
+	}
+
+
+	/**
+	 * Loads our environment reflection map texture
+	 *
+	 * @param {string} reflectionMapName - [OPTIONAL] the name of the reflection map to load
+	 */
+	async loadReflectionMap(reflectionMapName='venice_sunset_1k.hdr'){
+
+		// make a new RGBELoader
+		const rgbeLoader = new RGBELoader();
+
+		// load the HDR reflection map
+		this.reflectionMap = await new Promise((resolve, reject) => {
+			rgbeLoader.load(`assets/hdr/${reflectionMapName}`, resolve, undefined, reject);
+		});
+
+		// set the texture mapping so it can be sued as a reflection map
+		this.reflectionMap.mapping = THREE.EquirectangularReflectionMapping;
+
+		// set the reflection map on the scene
+		this.scene.environment = this.reflectionMap;
+	}
+
+
+	/**
+	 * Loads the assets for our scene, which mostly should be entirely in one GLB/GLTF file from Blender
+	 */
+	async loadSceneAssets(){
+
+		// make a new GLTFLoader
+		const gltfLoader = new GLTFLoader();
+
+		// load the GLTF scene
+		this.gltfScene = await new Promise((resolve, reject) => {
+			gltfLoader.load('assets/models/snow_globe_scene.glb', resolve, undefined, reject);
+		});
+
+		// add the GLTF scene to our main scene
+		this.scene.add(this.gltfScene.scene);
+	}
+
+
+	/**
+	 * Builds our custom particle system for the snow globe
+	 */
+	buildParticleSystem(){
+
+		// get the globe glass object, because we'll use it's center to place the particle system
+		const globeGlass = this.$('#GlobeGlass');
+
+		// get the center of the globe glass, in world space
+		const globeGlassCenter = new THREE.Vector3();
+		globeGlass.getWorldPosition(globeGlassCenter);
+
+		// we should also measure the radius of the globe glass, so we can place the particle system inside it
+		const globeGlassSize = new THREE.Box3().setFromObject(globeGlass);
+		const globeGlassRadius = globeGlassSize.getSize(new THREE.Vector3()).length() / 3.5;
+
+		// make a new particle system
+		const particleCount = 2000;
+		this.particleSystem = new SnowGlobeParticleSystem(particleCount, globeGlassRadius, this.camera, this.controls);
+
+		// add the particle system to the scene
+		this.scene.add(this.particleSystem);
+
+		// move the particle system to the center of the globe glass
+		this.particleSystem.position.copy(globeGlassCenter);
+	}
+
+
+	/**
+	 * Loops over the children of the GLTF scene and stores them in our sceneObjectsByID & sceneObjectsByClass
+	 */
+	parseSceneObjects(){
+
+		/**
+		 * Little helper function to recursively parse the scene objects
+		 *
+		 * @param {THREE.Object3D} sceneObject - object to walk over for children
+		 */
+		const parseSceneObjects = sceneObject => {
+
+			// loop over the children of the scene object
+			sceneObject.children.forEach(child => {
+
+				// a name could have both an ID and a class, like "#foo .class1 .class2"
+				const nameToSplit = child.userData.name ? child.userData.name : child.name;
+				const nameParts = nameToSplit.split(' ');
+
+				// loop over the name parts
+				nameParts.forEach(namePart => {
+
+					// if it starts with a #, it's an ID
+					if(namePart.startsWith('#')){
+						const id = namePart.substring(1);
+						this.sceneObjectsByID.set(id, child);
+					}
+
+					// if it starts with a ., it's a class
+					else if(namePart.startsWith('.')){
+						const className = namePart.substring(1);
+						if(!this.sceneObjectsByClass.has(className)){
+							this.sceneObjectsByClass.set(className, []);
+						}
+						this.sceneObjectsByClass.get(className).push(child);
+					}
+				});
+
+				// recurse on the child
+				parseSceneObjects(child);
+
+			});
+
+		};
+
+		// start the recursion
+		parseSceneObjects(this.gltfScene.scene);
+	}
+
+
+	/**
+	 * Applies some tweaks to specific materials in our scene
+	 */
+	applyMaterialTweaks(){
+
+		// set the reflection map on the globe base material
+		const globeBaseMaterial = this.$('#GlobeBase').children[0].material;
+		globeBaseMaterial.envMap = this.reflectionMap;
+		globeBaseMaterial.envMapIntensity = 1.0;
+		globeBaseMaterial.roughness = 0.2;
+		globeBaseMaterial.needsUpdate = true;
+
+		// get the dark interior of the gatcha hole
+		const gatchaHoleMaterial = this.$('#GlobeBase').children[1].material;
+		gatchaHoleMaterial.envMap = null;
+		gatchaHoleMaterial.roughness = 10;
+		gatchaHoleMaterial.envMapIntensity = 0;
+
+		// get the glass material of the globe
+		const globeGlassMaterial = this.$('#GlobeGlass').material;
+		globeGlassMaterial.envMap = this.reflectionMap;
+		globeGlassMaterial.envMapIntensity = 20.0;
+		const colorWhite = 0.05;
+		globeGlassMaterial.color.r = colorWhite;
+		globeGlassMaterial.color.g = colorWhite;
+		globeGlassMaterial.color.b = colorWhite;
+		globeGlassMaterial.roughness = 0.0;
+		globeGlassMaterial.needsUpdate = true;
+
+		// get the windshield material
+		const windshieldMaterial = this.$('#WindShield').material;
+		windshieldMaterial.roughness = 0.0;
+		windshieldMaterial.envMapIntensity = 1.0;
+		windshieldMaterial.opacity = 0.5;
+
+		this.render();
+	}
+
+
+	/**
+	 * Helper method to get a scene object by ID or class
+	 *
+	 * @param {string} selector - a string that has either '#<id>' or '.<class>'
+	 * @returns {THREE.Object3D|null} - the object with our sceneObjectsByID or sceneObjectsByClass maps
+	 */
+	$(selector){
+
+		// take a string that has either '#<id>' or '.<class>' and use it to find the object
+		// with our sceneObjectsByID or sceneObjectsByClass maps
+		if(selector.startsWith('#')){
+			const id = selector.substring(1);
+			return this.sceneObjectsByID.get(id);
+		}
+		else if(selector.startsWith('.')){
+			const className = selector.substring(1);
+			return this.sceneObjectsByClass.get(className);
+		}
+		else{
+			return null;
+		}
+	}
+
+
+
+	/**
+	 * Sets up the lights in our scene
+	 */
+	setUpLights(){
+
+		// make a new ambient light
+		const ambientLight = new THREE.AmbientLight(0xffffff, 2.0);
+		this.scene.add(ambientLight);
+
+	}
+
+
+	/**
+	 * Function for debug, to print out all the ids and class names we found in the scene
+	 * (this is just for debugging, not used in the actual app)
+	 *
+	 * @param {boolean} [printObject=false] - whether to print the object itself
+	 */
+	printObjects(printObject=false){
+
+		console.log('Objects by ID:');
+		this.sceneObjectsByID.forEach((value, key) => {
+			if(printObject==false)
+				console.log(`#${key}`);
+			else
+				console.log(`#${key}`, value);
+		});
+
+		console.log('Objects by Class:');
+		this.sceneObjectsByClass.forEach((value, key) => {
+			if(printObject==false)
+				console.log(`.${key}`);
+			else
+				console.log(`.${key}`, value);
+		});
+	}
+
+
+	/**
+	 * This public method allows our scene to be mounted.
+	 *
+	 * This will be called by the Vue component, ThreeScene.vue, once it's mounted
+	 * and has a reference to the DOM element where we want to mount our scene.
+	 *
+	 * Note: one side-effect we'll have is also starting a resize observer here,
+	 * so we can resize the ThreeJS renderer when the window is resized.
+	 *
+	 * @param {HTMLElement} targetEl - the place to mount our scene, see comment above
+	 */
+	mountSceneToDOM(targetEl) {
+
+		// this depends on the renderer being ready, so we'll wait for that
+		this.ifOrWhenSceneIsReady(() => {
+
+			// save reference to the container element
+			this.renderContainer = targetEl;
+
+			// mount the scene to a specific DOM element
+			targetEl.appendChild(this.renderer.domElement);
+
+			// build a resize observer to resize the renderer when the window is resized
+			this.buildResizeObserver(targetEl);
+		});
+	}
+
+
+	/**
+	 *
+	 * @param {HTMLElement} targetEl - the element we want to watch for resizes
+	 */
+	buildResizeObserver(targetEl) {
+
+		// make a new ResizeObserver
+		this.resizeObserver = new ResizeObserver(entries => {
+			for (let entry of entries) {
+				const cr = entry.contentRect;
+				this.renderer.setSize(cr.width, cr.height);
+				this.camera.aspect = cr.width / cr.height;
+				this.camera.updateProjectionMatrix();
+				this.renderer.render(this.scene, this.camera);
+
+				 // update our other two cameras
+				this.pullCamera.aspect = cr.width / cr.height;
+				this.pullCamera.updateProjectionMatrix();
+				this.capsuleCamera.aspect = cr.width / cr.height;
+				this.capsuleCamera.updateProjectionMatrix();
+			}
+		});
+
+		// observe the target element
+		this.resizeObserver.observe(targetEl);
+	}
+
+
+	/**
+	 * Either runs the FN immediately if scene is already ready, or will do so when it is ready
+	 *
+	 * @param {Function} doFN - call back function to run when the scene is ready
+	 */
+	ifOrWhenSceneIsReady(doFN){
+
+		// if the scene is ready, just call the function
+		if(this.isReady){
+			doFN();
+		}
+
+		// otherwise, add the function to the readyListeners array
+		else{
+			this.readyListeners.push(doFN);
+		}
+	}
+
+
+	/**
+	 * This method will be called when the scene is ready.
+	 *
+	 * It will mark the scene as ready, and then call all the functions in the readyListeners
+	 */
+	setSceneReady(){
+
+		// mark the scene as ready
+		this.isReady = true;
+
+		// call all the functions in the readyListeners array
+		this.readyListeners.forEach(fn => fn());
+	}
+
+
+	/**
+	 * This method will animate our scene.
+	 *
+	 * It's called recursively by itself, and uses requestAnimationFrame to do so.
+	 *
+	 * This is where we can update our scene, move things around, etc.
+	 */
+	animate() {
+		requestAnimationFrame(() => this.animate());
+		if(this.particleSystem)
+			this.particleSystem.update();
+		this.render();
+	}
+
+	setCamera(camera){
+		this.cameraToUse = camera;
+	}
+
+
+	/**
+	 * This method will render our scene.
+	 *
+	 * It's called when we want to render the scene, but not animate it.
+	 */
+	render(){
+		this.renderer.render(this.scene, this.cameraToUse);
+	}
+
+}
+
+
+================================================================================
+File: src\classes\ToastManager.js
+================================================================================
+/*
+	ToastManager.js
+	---------------
+
+	Simple JavaScript class to manage timing & queueing of toast messages.
+*/
+
+// vue
+import { ref } from 'vue';
+
+// main class
+class ToastManager {
+
+	/**
+	 * Constructs the ToastManager
+	 *
+	 * @param {Number} toastLength - the length toasts should last in seconds
+	 */
+	constructor(toastLength) {
+
+		// The duration each toast should remain visible
+		this.toastLength = toastLength * 1000;
+
+		// Ref variable to hold the current message and title
+		this.currentMessage = ref({
+			message: '',
+			title: '',
+		});
+
+		// true if we should show the toast
+		this.showToast = ref(false);
+
+		// Array to queue the messages
+		this.messageQueue = [];
+
+		// To hold the timer ID
+		this.timerId = null;
+	}
+
+
+	/**
+	 * Shows a toast message, or queues it for later if it's still showing another one
+	 *
+	 * @param {String} message - the Message to display
+	 * @param {String} title - [optional] the title of the message
+	 */
+	showToastMsg(message, title = '') {
+
+		// Create the toast object
+		const toast = { message, title };
+		if (this.showToast.value === false) {
+
+			// If there is no current message, display this one immediately
+			this.setCurrentMessage(toast);
+
+		} else {
+
+			// Otherwise, add to the queue
+			this.messageQueue.push(toast);
+		}
+	}
+
+
+	/**
+	 * Set the current message to show & countdown
+	 *
+	 * @param {Object} toast - message like { message: 'message', title: 'title' }
+	 */
+	setCurrentMessage(toast) {
+
+		// Set the current message object
+		this.currentMessage.value = toast;
+		this.showToast.value = true;
+
+		// in the public folder /assets/sfx/ there's a ding.mp3 file
+		// play that sound now
+		setTimeout(() => {
+			const audio = new Audio('assets/sfx/ding.mp3');
+			audio.play();
+		}, 100);
+
+		// Clear any existing timer
+		if (this.timerId) {
+			clearTimeout(this.timerId);
+		}
+
+		this.timerId = setTimeout(() => {
+			this.clearCurrentMessage();
+		}, this.toastLength);
+
+	}
+
+
+	/**
+	 * Clear the current message and show the next one in the queue
+	 */
+	clearCurrentMessage() {
+
+		this.showToast.value = false;
+		if (this.messageQueue.length > 0) {
+
+			// Wait half a second before showing the next message
+			setTimeout(() => {
+				this.setCurrentMessage(this.messageQueue.shift());
+			}, 500);
+		}
+	}
+
+}
+
+export default ToastManager;
+
+
+================================================================================
+File: src\components\BackgroundLayers.vue
+================================================================================
+<!--
+	BackgroundLayers.vue
+	--------------------
+
+	This file will provide some background graphics that will fill the screen and live behind the ThreeJS renderer.
+	Some of these backgrounds may be animated on and off depending on the state of the game.
+-->
+<template>
+
+	<!-- main outer-wrapper that will be full screen and hold all our BG layers -->
+	<div class="bgLayers">
+
+		<!-- base layer will be a gradient, we'll mix a pattern on later -->
+		<div class="gradientLayer"></div>
+
+		<!-- this layer will use CSS-blending mix-modes to blend a texture over the gradient -->
+		<div class="imageLayer"></div>
+
+		<!-- gatcha layer - animated fun colors over -->
+		<div v-if="
+			gameState.doingCapsuleAnimation.value==true || gameState.doingPullCameraAnimation.value"
+			class="gatchaLayer"></div>
+
+		<!-- black fade for when we just have the present -->
+		<div
+			class="blackFade"
+			:class="{hide: shouldShowBlackFade == false }"
+		></div>
+	</div>
+
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted, computed } from 'vue';
+
+// app
+import { Game } from '../classes/Game';
+
+// define some props
+const props = defineProps({
+
+	// reference to our current game state
+	gameState: Object
+
+});
+
+// computed method to see if we should show the black fade
+const shouldShowBlackFade = computed(() => {
+
+	const gameIsLoading = props.gameState.mode.value == Game.MODE.LOADING;
+	const gameIsUnpacking = props.gameState.mode.value == Game.MODE.UNPACKING;
+	return gameIsLoading || gameIsUnpacking;
+});
+
+</script>
+<style lang="scss" scoped>
+
+	// main outer layer, that will fill the screen
+	.bgLayers {
+
+		// fill screen space, with black bg as default
+		position: fixed;
+		inset: 0px 0px 0px 0px;
+
+		// black bg
+		background: black;
+
+
+		// the purple gradient
+		.gradientLayer {
+
+			// fill parent with purple gradient
+			position: absolute;
+			inset: 0px 0px 0px 0px;
+
+			// purple gradient
+			background: linear-gradient(180deg, #4E2A77 0%, #1A1A3A 100%);
+
+		}// .gradientLayer
+
+
+		// the Reli xmas themed image layer
+		.imageLayer {
+
+			// fill parent with image
+			position: absolute;
+			inset: 0px 0px 0px 0px;
+
+			// image, with repeat mode one
+			background: url('../assets/img/reli_xmas_bg_pattern.png') no-repeat center center;
+			background-repeat: repeat;
+
+			// blend mode
+			mix-blend-mode: overlay;
+
+		}// .imageLayer
+
+		// the party colors layer gradient
+		.gatchaLayer {
+
+			// fill parent with purple gradient
+			position: absolute;
+			inset: 0px 0px 0px 0px;
+
+			// animate background color
+			animation: gatchaColors 1s infinite;
+			animation-timing-function: linear;
+
+			// mix to brighten bg
+			mix-blend-mode: overlay;
+
+		}// .gatchaLayer
+
+		// keyframes for the gatcha layer
+		@keyframes gatchaColors {
+			0% {
+				background: linear-gradient(180deg, #FF0000 0%, #FF0000 100%);
+			}
+			25% {
+				background: linear-gradient(180deg, #9d00ff 0%, #9d00ff 100%);
+			}
+			50% {
+				background: linear-gradient(180deg, #00FF00 0%, #00FF00 100%);
+			}
+			75% {
+				background: linear-gradient(180deg, #0000FF 0%, #0000FF 100%);
+			}
+			100% {
+				background: linear-gradient(180deg, #2a9717 0%, #2a9717 100%);
+			}
+		}// @keyframes gatchaColors
+
+		// black fade for when we just have the present
+		.blackFade {
+
+			// fill parent with black
+			position: absolute;
+			inset: 0px 0px 0px 0px;
+
+			// black bg
+			background: rgb(29, 29, 29);
+
+			// fade in/out
+			transition: opacity 2s;
+
+			// hide by default
+			opacity: 1;
+
+			// show when we're unpacking
+			&.hide {
+				opacity: 0;
+			}
+
+		}// .blackFade
+
+	}// .bgLayers
+
+</style>
+
+
+================================================================================
+File: src\components\CatsMenu.vue
+================================================================================
+<!--
+	CatsMenu.vue
+	------------
+
+	Show's which hidden cats the player has found.
+-->
+<template>
+
+	<!-- our basic menu component -->
+	<MenuPanel
+		:isOpen="isOpen"
+		:size="470"
+		:position="{ top: 130, left: 10 }"
+		:tabLocation="21"
+	>
+
+		<!-- the header text for the menu -->
+		<h1>{{ gameState.allCatsFound.value ? 'All Cats Found!' : 'Find Hidden Cats to get Gatcha Pulls!' }}</h1>
+
+		<!-- loop to show cat menu icons -->
+		<div class="catMenuIcons">
+			<HiddenCatIcon
+				v-for="cat in gameState.foundCats.value"
+				:key="cat.id+cat.found"
+				:catFound="cat.found"
+				:cat="cat"
+			/>
+		</div>
+
+	</MenuPanel>
+
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted } from 'vue';
+
+// components
+import MenuPanel from './MenuPanel.vue';
+import HiddenCatIcon from './HiddenCatIcon.vue';
+
+// define some props
+const props = defineProps({
+
+	// true if menu is open
+	isOpen: {
+		type: Boolean,
+		default: false
+	},
+
+	// reference to our current game state
+	gameState: Object
+});
+
+</script>
+<style lang="scss" scoped>
+
+	// top text
+	h1 {
+		text-align: center;
+		font-size: 24px;
+		margin: 0px;
+	}// h1
+
+</style>
+
+
+================================================================================
+File: src\components\ControlsPanel.vue
+================================================================================
+<!--
+	ControlsPanel.vue
+	-----------------
+
+	Just a little box on the bottom-right that shows the mouse controls
+-->
+<template>
+
+	<!-- the box w/ the controls text -->
+	<div class="controlsBox">
+
+		<!-- cuz i'm feeling lazy, we'll absolutely position an image and 3 rows of text -->
+		<img src="../assets/img/control_icons.png" class="controlsImage"/>
+
+		<div class="row row_1"><span>Left Mouse</span> to Rotate</div>
+		<div class="row row_2"><span>Scroll</span> to Zoom In/Out</div>
+		<div class="row row_3"><span>Right Mouse</span> to Pan</div>
+
+		<!-- we'll sneak the credits link into this panel also -->
+		<div class="row row_4 creditsRow">
+			<span @click="showCredits">Credits</span>
+		</div>
+	</div>
+
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted } from 'vue';
+
+// app
+import { gatchaQuotes } from '@/classes/Data';
+
+// define some props
+const props = defineProps({
+
+	// the toast manager
+	modalManager: Object
+});
+
+// show the credits
+const showCredits = () => {
+
+	const css = `
+		<style type="text/css">
+			.inlineStyle {
+				text-align: left;
+				padding: 10px 30px;
+			}
+
+			.inlineStyle a {
+				color: white;
+			}
+		</style>`;
+
+	// show a modal for programming
+	let modalHTML = `
+		<div class="inlineStyle"><small><small>
+
+			A game by Greg Miller (Orokro/RlySrsBiz)<br>
+			<br>
+			<a href="http://gmiller.net" target="_blank">gmiller.net</a><br>
+			<a href="https://x.com/RlySrsBiz" target="_blank">@RlySrsBiz</a>
+		</small></small></div>
+	` + css;
+	props.modalManager.showModal(modalHTML, 'Programming & 3D Modeling');
+
+	// show modal for music
+	modalHTML = `
+		<div class="inlineStyle"><small><small>
+			Music by ZbotZero<br>
+			<br>
+			<a href="https://discord.com/invite/yZyNufZcAh" target="_blank">Discord Server</a><br>
+			<a href="https://soundcloud.com/zbotzero" target="_blank">SoundCloud</a><br>
+			<a href="https://www.youtube.com/@ZbotZero" target="_blank">YouTube</a><br>
+		</small></small></div>
+	` + css;
+	props.modalManager.showModal(modalHTML, 'Music');
+
+	// show modal for art
+	modalHTML = `
+		<div class="inlineStyle"><small><small>
+			2D/3D Assets modeled by Greg Miller, <br>
+			but additional models downloaded:<br>
+			<br>
+			<a href="https://free3d.com/3d-model/tree-v3--182436.html" target="_blank">Tree</a><br>
+			<a href="https://sketchfab.com/3d-models/pickup-truck-scene-fcd1362ddc45471b8d53cec41ee38582" target="_blank">Truck</a><br>
+
+		</small></small></div>
+	` + css;
+	props.modalManager.showModal(modalHTML, 'Additional Art');
+
+	// get all the unique "from" in our gatchaQuotes & join with commas
+	const froms = gatchaQuotes.map(quote => quote.from).filter((v, i, a) => a.indexOf(v) === i);
+	const fromsStr = froms.join(', ');
+
+	// show modal for art
+	modalHTML = `
+		<div class="inlineStyle"><small><small>
+			Thanks to everyone who contributed quotes:<br>
+			<small><small>${fromsStr}</small></small>
+		</small></small></div>
+	` + css;
+	props.modalManager.showModal(modalHTML, 'Contributions');
+
+};
+
+
+
+</script>
+<style lang="scss" scoped>
+
+	// fix on bottom right of the screen
+	.controlsBox {
+
+		// fixed size on bottom right
+		position: fixed;
+		bottom: 30px;
+		right: 30px;
+		width: 215px;
+		height: 190px;
+
+		// semi-transparent blurry box
+		background: rgba(0, 0, 0, 0.3);
+		backdrop-filter: blur(5px);
+
+		color: white;
+		padding: 10px;
+		border-radius: 15px;
+
+		// fix the image on the left of the box
+		.controlsImage {
+
+			position: absolute;
+			left: 10px;
+			top: 10px;
+			width: 40px;
+			height: 160px;
+
+		}// .controlsImage
+
+		// the rows of text
+		.row {
+			position: absolute;
+			left: 60px;
+			font-weight: bolder;
+
+			span { color: #2ECDB5;}
+			&.row_1 { top: 25px; }
+			&.row_2 { top: 80px; }
+			&.row_3 { top: 135px; }
+			&.row_4 {
+				top: 175px;
+				left: 0px;
+				right: 0px;
+				text-align: center;
+
+				span {
+					color: white;
+					text-decoration: underline;
+					cursor: pointer;
+				}
+
+				opacity: 0.7;
+				&:hover { opacity: 1; }
+			 }// .row_4
+
+		}
+	}// .controlsBox
+
+</style>
+
+
+================================================================================
+File: src\components\GameUILayer.vue
+================================================================================
+<!--
+	GameUILayer.vue
+	---------------
+
+	This file hosts the UI elements for the game play modes.
+-->
+<template>
+
+	<!-- main layer wrapper -->
+	<div class="gameUILayer">
+
+		<!-- if we're not hiding the UI -->
+		<div v-show="shouldShowUI">
+
+			<!-- our two menus -->
+			<CatsMenu
+				:isOpen="gameState.catsMenuOpen.value"
+				:gameState="gameState"
+			/>
+			<GatchaMenu
+				:isOpen="gameState.gatchaMenuOpen.value"
+				:gameState="gameState"
+			/>
+
+			<!-- our two icons  -->
+			<MenuIcon
+				:icon="`cat_menu_icon`"
+				:left="30"
+				:notificationCount="gameState.catsMenuCount.value"
+				@click="toggleCatsMenu"
+			/>
+			<MenuIcon
+				:icon="`gatcha_menu_icon`"
+				:left="130"
+				:notificationCount="gameState.gatchaMenuCount.value"
+				@click="toggleGatchaMenu"
+			/>
+
+			<!-- our controls panel -->
+			<ControlsPanel :modalManager="gameState.modalManager" />
+
+			<!-- gatcha pull button -->
+			<GatchaButton :gameState="gameState"/>
+
+		</div>
+
+		<!-- layer that animates for beginning of pull -->
+		<GatchaPullOverlay v-if="gameState.doingPull.value"  :gameState="gameState" />
+
+	</div>
+
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted, computed } from 'vue';
+
+// components
+import MenuIcon from './MenuIcon.vue';
+import CatsMenu from './CatsMenu.vue';
+import GatchaMenu from './GatchaMenu.vue';
+import GatchaButton from './GatchaButton.vue';
+import GatchaPullOverlay from './GatchaPullOverlay.vue';
+import ControlsPanel from './ControlsPanel.vue';
+
+// app
+import { Game } from '../classes/Game';
+
+// define some props
+const props = defineProps({
+
+	// our threeJS scene
+	scene: Object,
+
+	// reference to our current game state
+	gameState: Object
+
+});
+
+
+// computed method to see if UI Icons should be on screen
+const shouldShowUI = computed(() => {
+
+	const UIIsNotHidden = !props.gameState.hideUI.value;
+	const gameModeIsPlaying = props.gameState.mode.value === Game.MODE.PLAYING;
+
+	return UIIsNotHidden && gameModeIsPlaying;
+});
+
+
+/**
+ * Toggles the cats menu.
+ */
+function toggleCatsMenu() {
+	props.gameState.showMenu(Game.MENU.CATS);
+}
+
+
+/**
+ * Toggles the gatcha menu.
+ */
+function toggleGatchaMenu() {
+	props.gameState.showMenu(Game.MENU.GATCHA);
+}
+
+</script>
+<style lang="scss" scoped>
+
+	// fill screen space
+	.gameUILayer {
+
+		// fill screen space
+		position: fixed;
+		inset: 0px 0px 0px 0px;
+
+		// don't allow pointer events for the main layer
+		pointer-events: none;
+
+		// but allow them for children
+		& > * {
+			pointer-events: initial;
+		}
+
+	}// .gameUILayer
+
+</style>
+
+
+================================================================================
+File: src\components\GatchaButton.vue
+================================================================================
+<!--
+	GatchaButton.vue
+	----------------
+
+	Button used for pulls.
+	It also shows the number of pulls left.
+-->
+<template>
+
+	<!-- outer box we'll use to build the button inside of -->
+	<div
+		class="gatchaButtonBox"
+		:class="{
+			'noPullsLeft': gameState.gatchaPulls.value === 0,
+			'gatchaEnabled': gameState.gatchaUnlocked.value
+		}"
+		title="Lets gooooooooo!"
+		@click="gameState.doPull()"
+	>
+
+		<!-- this layer will be the "shadow" for the button top -->
+		<div class="shadow">
+
+			<!-- the top of the button that's lighter in color -->
+			<div class="top">
+
+				<!-- the text -->
+				<div class="text">
+					Pull!
+				</div>
+
+				<!-- the number of pulls left -->
+				<div
+					class="pullsLeft"
+					:class="{ 'noPullsLeft': gameState.gatchaPulls.value === 0 }"
+				>
+					Pulls Left: {{ gameState.gatchaPulls.value }}
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted } from 'vue';
+
+// define some props
+const props = defineProps({
+
+	// reference to our current game state
+	gameState: Object
+
+});
+
+</script>
+<style lang="scss" scoped>
+
+	// fix on top right of the screen
+	.gatchaButtonBox {
+
+		// fixed on top right
+		position: absolute;
+		right: 30px;
+
+		// we will hide off screen until gatcha is enabled
+		top: -150px;
+		transition: top 0.3s ease;
+
+		&.gatchaEnabled {
+			top: 30px;
+		}
+
+		// fixed size
+		width: 300px;
+		height: 130px;
+
+
+		// mega mind: no pulls?
+		&.noPullsLeft {
+			pointer-events: none;
+
+			background: black;
+			border-radius: 20px;
+
+			.shadow {
+				opacity: 0.7;
+			}
+		}// &.noPullsLeft
+
+
+		// style our shadow div
+		.shadow {
+
+			// fixed on the bottom-right of our outer gatchaButtonBox
+			position: absolute;
+			bottom: 0px;
+			right: 0px;
+			width: 300px;
+			height: 130px;
+
+			// purple rectangle
+			background: rgb(85, 10, 160);
+			border-radius: 25px;
+			border: 3px solid rgba(255, 255, 255, 0.7);
+
+			// allow nothing to escape
+			overflow: hidden;
+
+			// appear clickable to user
+			cursor: pointer;
+
+			// the top of the button
+			.top {
+
+				// fixed on the top-left
+				position: absolute;
+				top: 5px;
+				left: 5px;
+				width: 285px;
+				height: 110px;
+
+				background: rgb(163, 113, 255);
+				border-radius: 18px 18px 20px 18px;
+
+				// the pull text
+				.text {
+					position: absolute;
+					inset: 7px 0px 0px 0px;
+
+					color: rgb(255, 84, 192);
+					color: #fcd9f7;
+					font-size: 60px;
+					font-weight: bolder;
+					font-style: italic;
+					text-align: center;
+
+				}// t.ext
+
+				// the remaining pulls count
+				.pullsLeft {
+
+					// bottom center
+					position: absolute;
+					inset: auto 0px 0px 0px;
+					height: 30px;
+
+					color: rgb(255, 255, 255);
+					font-size: 20px;
+					font-weight: bold;
+					font-style: italic;
+					text-align: center;
+					opacity: 0.7;
+
+					// no pulls left
+					&.noPullsLeft {
+						color: rgba(0, 0, 0, 0.3);
+					}
+
+				}// .pullsLeft
+
+			}// .top
+
+		}// .shadow
+
+		&:hover {
+
+			// make the button look like it's being pressed
+			.top {
+				background: rgb(191, 160, 248);
+			}
+		}
+
+		&:active {
+
+			.shadow {
+				width: 295px;
+				height: 120px;
+			}
+		}
+
+	}// .gatchaButtonBox
+
+</style>
+
+
+================================================================================
+File: src\components\GatchaMenu.vue
+================================================================================
+<!--
+	GatchaMenu.vue
+	--------------
+
+	Show's which gatcha quotes the player has found.
+-->
+<template>
+
+	<!-- our basic menu component -->
+	<MenuPanel
+		:isOpen="isOpen"
+		:size="470"
+		:position="{ top: 130, left: 10 }"
+		:tabLocation="121"
+	>
+		<!-- the header text for the menu -->
+		<h1>{{ gameState.allGatchaQuotesFound.value ? 'All Quotes Found!' : 'Pull for Merry Quotes!' }}</h1>
+
+		<!-- loop to show quotes -->
+		<div class="quotesList scrollable-element">
+			<GatchaRow
+				v-for="quote in gameState.gatchaQuotesSeen.value"
+				:key="quote.id+quote.found"
+				:quoteFound="quote.found"
+				:quote="quote"
+			/>
+		</div>
+
+	</MenuPanel>
+
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted } from 'vue';
+
+// components
+import MenuPanel from './MenuPanel.vue';
+import GatchaRow from './GatchaRow.vue';
+
+// define some props
+const props = defineProps({
+
+	// true if menu is open
+	isOpen: {
+		type: Boolean,
+		default: false
+	},
+
+	// reference to our current game state
+	gameState: Object
+});
+
+</script>
+<style lang="scss" scoped>
+
+	// top text
+	h1 {
+		text-align: center;
+		font-size: 24px;
+		margin: 0px;
+
+	}// h1
+
+	// make the quotes list scrollable with a fixed height
+	.quotesList {
+
+		// fixed height box w/ scroll bar
+		height: 600px;
+		overflow-x: hidden;
+		overflow-y: auto;
+
+		// spacing on top
+		margin-top: 10px;
+
+		&::-webkit-scrollbar {
+			width: 8px; /* Width of the scrollbar */
+			background-color: transparent; /* Optional: could be set to a color */
+		}
+
+		&::-webkit-scrollbar-thumb {
+			background-color: #c1c1c1; /* Light grey, similar to macOS default */
+			border-radius: 4px; /* Rounded corners on the scrollbar thumb */
+			border: 2px solid transparent; /* Optional: borders for the thumb */
+			background-clip: padding-box; /* Prevents background color from leaking into the border */
+		}
+
+		&::-webkit-scrollbar-thumb:hover {
+			background-color: #a8a8a8; /* Darker grey on hover */
+		}
+	}// .quotesList
+
+</style>
+
+
+================================================================================
+File: src\components\GatchaPullOverlay.vue
+================================================================================
+<!--
+	GatchaPullOverlay.vue
+	---------------------
+
+	This component will provide some animated elements when a pull is initiated.
+-->
+<template>
+
+	<!-- this box we'll populate with four "curtains" that spell "P U L L" and animate Reli flying -->
+	<div
+		class="gatchaPullOverlay"
+		:class="{
+			'horizontal': stage === STAGE.HORIZONTAL,
+			'vertical': stage === STAGE.VERTICAL
+		}"
+	>
+
+		<!-- curtain 1 -->
+		<div class="curtain curtain1">
+			<div class="letter">P</div>
+		</div>
+
+		<!-- curtain 2 -->
+		<div class="curtain curtain2">
+			<div class="letter">U</div>
+		</div>
+
+		<!-- curtain 3 -->
+		<div class="curtain curtain3">
+			<div class="letter">L</div>
+		</div>
+
+		<!-- curtain 4 -->
+		<div class="curtain curtain4">
+			<div class="letter">L</div>
+		</div>
+
+		<!-- curtain 5 -->
+		<div class="curtain curtain5">
+			<div class="letter">!</div>
+		</div>
+
+		<!-- Reli -->
+		<div class="reli">
+			<img src="../assets/img/reli_ship.png" alt="Reli" />
+		</div>
+
+		<!-- quote box in the center of the screen -->
+		<div class="quoteBox" v-if="gameState.pickedQuote.value!=null">
+			<div class="quote">{{ gameState.pickedQuote.value.text }}</div>
+			<div class="author">From: {{ gameState.pickedQuote.value.from }}</div>
+			<div class="closeButtonRow">
+				<button @click="gameState.completePull()">Close</button>
+			</div>
+
+			<!-- the graphic of reli pointing, a child of the quote box so we can animated it easily -->
+			<div class="reliPointing"></div>
+		</div>
+
+	</div>
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted } from 'vue';
+
+// useful constants for our various stages
+const STAGE = {
+	START: 0,
+	HORIZONTAL: 1,
+	VERTICAL: 2,
+	END: 3
+};
+
+// variable for the stages of the curtain animation
+const stage = ref(STAGE.START);
+
+// define some props
+const props = defineProps({
+
+	// reference to our current game state
+	gameState: Object
+
+});
+
+
+// after we mount, immediately kick off the next stage
+onMounted(() => {
+
+
+	// after a short delay, move to the horizontal stage
+	setTimeout(() => {
+		stage.value = STAGE.HORIZONTAL;
+	}, 1);
+
+	// horizontal animation takes 1 second, so start the vertical stage after that
+	setTimeout(() => {
+		stage.value = STAGE.VERTICAL;
+	}, 1200);
+
+});
+
+</script>
+<style lang="scss" scoped>
+
+	// rotated box with the P U L L curtains
+	.gatchaPullOverlay {
+
+		// always on top
+		z-index: 1000;
+
+		// fill screen
+		position: fixed;
+		inset: -100px -100px -100px -100px;
+
+		// rotate a bit
+		transform: rotate(-5deg);
+
+		// the pull curtains
+		.curtain {
+
+			// take up 1/5th of the screen horizontally
+			width: 20%;
+			height: 110%;
+			position: absolute;
+
+			// animate in from left
+			transition: left 1.3s ease-in-out, top 1s;
+
+			background: rgba(30, 170, 180, 1);
+
+			&:nth-child(odd) {
+				background: rgb(6, 149, 159);
+			}
+
+			// giant letter
+			.letter {
+
+				// force center of curtain
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+
+				// giant font
+				font-size: 200px;
+				font-weight: bolder;
+				color: white;
+			}// .letter
+
+			&.curtain1 { left: -20%; top: -5%; }
+			&.curtain2 { left: -20%; top: -5%; }
+			&.curtain3 { left: -20%; top: -5%; }
+			&.curtain4 { left: -20%; top: -5%; }
+			&.curtain5 { left: -20%; top: -5%; }
+
+		}// .curtain
+
+		// cute
+		.reli {
+
+			width: 20%;
+			position: absolute;
+
+			top: 50%;
+			left: -20%;
+			transform: translateY(-50%) scale(0.5);
+
+			transition: left 1.3s ease-in-out;
+		}// .reli
+
+		// first stage - curtains & reli move in left-to-right horizontally
+		&.horizontal {
+			.curtain1 { left: 0%; }
+			.curtain2 { left: 20%; }
+			.curtain3 { left: 40%; }
+			.curtain4 { left: 60%; }
+			.curtain5 { left: 80%; }
+
+			.reli {
+				left: 92%;
+			}
+		}// &.horizontal
+
+		// first stage - curtains & reli move in left-to-right horizontally
+		&.vertical {
+			.curtain1 { left: 0%;  top:  110%; }
+			.curtain2 { left: 20%; top: -110%;}
+			.curtain3 { left: 40%; top:  110%; }
+			.curtain4 { left: 60%; top: -110%;}
+			.curtain5 { left: 80%; top:  110%; }
+
+			.reli {
+				left: 92%;
+			}
+		}// &.horizontal
+
+		.quoteBox {
+
+			// center of the screen
+			position: absolute;
+			top: 40%;
+			left: 50%;
+			transform: translate(-50%, -50%) rotate(5deg);
+
+			width: 300px;
+
+			// hand writing font
+			font-family: 'Dancing Script', cursive;
+			color: rgb(58, 18, 110);
+
+			// semi-transparent box
+			background: rgba(255, 255, 255, 1);
+			padding: 20px 20px 60px 20px;
+			border-radius: 15px;
+
+			// the quote text
+			.quote {
+				font-size: 20px;
+				font-size: italic;
+				font-weight: bolder;
+				text-align: center;
+			}// .quote
+
+			// author style
+			.author {
+				font-size: 15px;
+				font-style: italic;
+				text-align: right;
+				margin-top: 10px;
+			}// .author
+
+			// the row on the button holding the button
+			.closeButtonRow {
+
+				position: absolute;
+				inset: auto 0px 0px 0px;
+				height: 45px;
+
+				text-align: center;
+
+				// make the button look nice
+				button {
+					background: rgb(58, 18, 110);
+					color: white;
+					font-size: 20px;
+					font-weight: bolder;
+					padding: 5px 10px;
+					border-radius: 10px;
+					cursor: pointer;
+					transition: background 0.5s;
+
+				}// button
+
+			}// .closeButtonRow
+
+			// reli pointing graphic
+			.reliPointing {
+
+				// position bottom left of the quote box
+				position: absolute;
+				bottom: -1380px;
+				left: -5%;
+				transform: translate(-50%, -50%);
+
+				// pointy reli
+				background: url('../assets/img/reli_pointing.png') no-repeat;
+				background-size: contain;
+				width: 100px;
+				height: 100px;
+
+				// background: white !important;
+				width: 300px;
+				height: 300px;
+
+				// animate in
+				transition: bottom 1s ease;
+
+				&.show {
+					bottom: 380px;
+				}
+
+				// animate bottom from -1380px to 380px using keyframes, no repeat
+				animation: reliPointing 1s ease forwards;
+
+
+			}// .reliPointing
+
+			// keyframes for the reli pointing animation
+			@keyframes reliPointing {
+				0% { bottom: -1380px; }
+				100% { bottom: -380px; }
+			}// @keyframes reliPointing
+
+		}// .quoteBox
+
+	}// .gatchaPullOverlay
+
+</style>
+
+
+================================================================================
+File: src\components\GatchaRow.vue
+================================================================================
+<!--
+	GatchaRow.vue
+	-------------
+
+	One of our quotes that has been found, or not, displayed in the gatcha menu.
+
+-->
+<template>
+
+	<!-- main outer-wrapper for the icon -->
+	<div
+		class="quoteRow"
+		:title="quoteSettings.text"
+	>
+		<!-- the author of the quote, optional if empty string -->
+		<div
+			v-if="quoteSettings.from!=''"
+			class="author"
+		>
+			{{ quoteSettings.from }}
+		</div>
+
+		<!-- the quote text -->
+		<div class="quote" :class="{ unFound: !quoteSettings.found }">
+			{{ quoteSettings.text }}
+		</div>
+
+	</div>
+
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted, computed } from 'vue';
+
+// define some props
+const props = defineProps({
+
+	// the cat to show
+	quote: {
+
+		type: Object,
+		default: () => {
+			return {
+				from: 'Unknown Aurelinaut',
+				text: 'Meow',
+				found: false
+			};
+		}
+	}
+
+});
+
+
+// return the settings we need for the icon based if it's found or not
+const quoteSettings = computed(() => {
+
+	// if found, show the full quote
+	if (props.quote.found==true) {
+		return {
+			from: props.quote.from,
+			text: props.quote.text,
+			found: true,
+		};
+	}
+
+	// otherwise, show the question mark
+	else {
+		return {
+			from: '',
+			text: '???',
+			found: false,
+		};
+	};
+
+});
+
+</script>
+<style lang="scss" scoped>
+
+	// main quote row
+	.quoteRow {
+
+		// make a circle
+		width: 100%;
+		height: 40px;
+
+		// alternate bg on odd rows
+		// background-color: #f0f0f0;
+		&:nth-child(odd) {
+			background-color: rgba(255, 255, 255, 0.1);
+		}
+
+		// relative so we can position children abso-lutely
+		position: relative;
+
+		// stretch fit background image
+		background-size: cover;
+
+		// the author name, smol on top left
+		.author {
+
+			position: absolute;
+			top: 0px;
+			left: 0px;
+
+			// text settings
+			font-size: 12px;
+			color: #AAA;
+
+
+			padding: 2px 6px;
+
+		}// .author
+
+		// the quote text
+		.quote {
+
+			// fill parent
+			position: absolute;
+			inset: 14px 0px 0px 0px;
+
+			// center text, and use ellipsis for overflow
+			text-align: center;
+			white-space: nowrap;
+			padding: 0px 10px;
+
+			// before found
+			&.unFound {
+				color: #666;
+				font-size: 32px;
+				font-weight: bolder;
+				top: 2px;
+			}
+
+			// add ellipses for overflow
+			overflow: hidden;
+			text-overflow: ellipsis;
+
+		}// .quote
+
+	}// .quoteRow
+
+</style>
+
+
+================================================================================
+File: src\components\HiddenCatIcon.vue
+================================================================================
+<!--
+	HiddenCatIcon.vue
+	-----------------
+
+	The circle with the picture or the ? for the cats to find.
+
+-->
+<template>
+
+	<!-- main outer-wrapper for the icon -->
+	<div
+		class="iconBox"
+
+		   :style="{
+			   backgroundImage: iconSettings.backgroundImage
+		   }"
+		   :title="iconSettings.text"
+		>
+	</div>
+
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted, computed } from 'vue';
+
+// define some props
+const props = defineProps({
+
+	// the cat to show
+	cat: {
+
+		type: Object,
+		default: () => {
+			return {
+				name: 'Unknown Cat',
+				icon: '00_mystery.png',
+				object: 'Unknown',
+				found: false
+			};
+		}
+	}
+
+});
+
+// return the settings we need for the icon based if it's found or not
+const iconSettings = computed(() => {
+
+	// if found, show the cat
+	if (props.cat.found==true) {
+		return {
+			backgroundImage: `url(assets/img/hidden_cat_icons/${props.cat.icon})`,
+			text: props.cat.name,
+		};
+	}
+
+	// otherwise, show the question mark
+	return {
+		backgroundImage: 'url(assets/img/hidden_cat_icons/00_mystery.png)',
+		text: 'Find Me!',
+	};
+
+});
+
+</script>
+<style lang="scss" scoped>
+
+	// main icon
+	.iconBox {
+
+		// make a circle
+		width: 110px;
+		height: 110px;
+		border: 4px solid white;
+		border-radius: 50%;
+
+		// stack left
+		float: left;
+		margin: 10px;
+
+		// stretch fit background image
+		background-size: cover;
+
+		// zoom in when hovered
+		transition: transform 0.2s;
+		&:hover {
+			transform: scale(1.39);
+			z-index: 1000;
+		}
+
+	}// .iconBox
+
+</style>
+
+
+================================================================================
+File: src\components\MenuIcon.vue
+================================================================================
+<!--
+	MenuIcon.vue
+	------------
+
+	The icons in the top-left that toggles the hidden cats / gatcha menus.
+-->
+<template>
+
+	<!-- the icon -->
+	<div
+		class="menuIcon"
+		:style="{ left: props.left + 'px' }"
+	>
+		<!-- the icon image -->
+		<img :src="`assets/img/icons/${props.icon}.png`" alt="Hidden Cats" />
+
+		<!-- read bubble for finds -->
+		<div
+			class="notificationCount"
+			v-if="props.notificationCount > 0"
+		>
+			<span>{{ props.notificationCount }}</span>
+		</div>
+
+	</div>
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted } from 'vue';
+
+// define props
+const props = defineProps({
+
+	// left position of icon
+	left: {
+		type: Number,
+		default: 30
+	},
+
+	// which icon image to show
+	icon: {
+		type: String,
+		default: 'cat_menu_icon'
+	},
+
+	// number to show in red circle when you find things
+	notificationCount: {
+		type: Number,
+		default: 0
+	}
+
+});
+
+</script>
+<style lang="scss" scoped>
+
+	// the icon
+	.menuIcon {
+
+		// position top-left
+		position: fixed;
+		top: 32px;
+
+		// cursor
+		cursor: pointer;
+
+		// z-index
+		z-index: 1000;
+
+		// icon
+		img {
+			width: 100px;
+			height: 100px;
+		}
+
+		transition: top 0.15s ease-out;
+		&:hover {
+			top: 25px;
+		}
+
+		// red notification bubble
+		.notificationCount {
+
+			// fixed on top right
+			position: absolute;
+			top: 0px;
+			right: 0px;
+
+			// red circle on bottom right
+			background: red;
+			color: white;
+			border-radius: 50%;
+			width: 30px;
+			height: 30px;
+
+			// text settings
+			text-align: center;
+			font-size: 20px;
+
+			// move text down a bit
+			span {
+				position: relative;
+				top: 4px;
+				left: -1px;
+			}// span
+
+		}// .notificationCount
+
+	}// .menuIcon
+
+</style>
+
+
+================================================================================
+File: src\components\MenuPanel.vue
+================================================================================
+<!--
+	MenuPanel.vue
+	-------------
+
+	This component provides a transparent panel with a configurable:
+		- size
+		- position
+		- tab location
+
+	So we can re-use this code for both the in game menus.
+
+-->
+<template>
+
+	<!-- the main box where we'll spawn contents	-->
+	<div
+		class="mainMenuBox"
+		:class="{ isOpen: props.isOpen }"
+		:style="{
+			width: props.size + 'px',
+			top: props.position.top + 'px',
+			left: props.position.left + 'px'
+		}"
+	>
+
+		<!-- the tab we'll overflow -->
+		<div
+			class="tab"
+			:style="{
+				left: props.tabLocation + 'px'
+			}"
+		></div>
+
+		<!-- said contents -->
+		<slot></slot>
+
+	</div>
+
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted } from 'vue';
+
+// define some props
+const props = defineProps({
+
+	// true if menu is open
+	isOpen: {
+		type: Boolean,
+		default: false
+	},
+
+	// the size of the menu
+	size: {
+		type: Number,
+		default: 300
+	},
+
+	// the position of the menu
+	position: {
+		type: Object,
+		default: () => {
+			return {
+				top: 0,
+				left: 0
+			};
+		}
+	},
+
+	// the tab location
+	tabLocation: {
+		type: Number,
+		default: 0
+	},
+
+});
+
+
+</script>
+<style lang="scss" scoped>
+
+	// the main menu box, which is a transparent
+	.mainMenuBox {
+
+		// invisible & no interaction if hidden
+		opacity: 0.0;
+		pointer-events: none !important;
+
+		// animate in when open
+		transition: opacity 0.15s ease-out;
+		&.isOpen {
+			opacity: 1;
+			pointer-events: initial  !important;
+		}
+
+		// positioned abso-lutely
+		position: absolute;
+
+		// rounded corner transparent box w/ bg blur
+		background-color: rgba(0, 0, 0, 0.3);
+		backdrop-filter: blur(3px);
+		border-radius: 10px;
+
+		// some generic padding & box styles
+		box-sizing: border-box;
+		padding: 20px;
+
+		// text settings
+		color: #EFEFEF;
+		font-size: 18px;
+
+		// the tab will be over-flowed on top around the icon
+		.tab {
+
+			// fixed on top, overflowing above
+			position: absolute;
+			top: -100px;
+			height: 100px;
+			width: 100px;
+
+			// rounded corner transparent box w/ bg blur
+			background-color: rgba(0, 0, 0, 0.3);
+			backdrop-filter: blur(3px);
+			border-radius: 10px 10px 0px 0px;
+
+		}// .tab
+
+	}// .mainMenuBox
+
+</style>
+
+
+================================================================================
+File: src\components\ModalMsg.vue
+================================================================================
+<!--
+	ModalMsg.vue
+	------------
+
+	Similar to the ToastMsg.vue, but centered popup that blocks bg interaction.
+	Also waits for user input to dismiss.
+-->
+<template>
+
+	<!-- giant wrapper to block out the bg -->
+	<div
+		class="modalLayer"
+		:class="{ show: props.modalManager.modalIsOpen.value }"
+	>
+
+		<!-- body wrapper of the toast message -->
+		<div
+			class="modalBody"
+		>
+
+			<!-- the optional title for the modal -->
+			<div
+				v-if="props.modalManager.currentMessage.value.title!=''"
+				class="modalTitle"
+			>
+				{{ props.modalManager.currentMessage.value.title }}
+			</div>
+
+			<!-- the main message text -->
+			<div v-html="props.modalManager.currentMessage.value.message" class="modalMessage" ></div>
+
+			<!-- the close button -->
+			<div class="closeButtonRow">
+				<button
+					@click="props.modalManager.closeModal"
+				>
+					K
+				</button>
+			</div>
+
+		</div>
+	</div>
+
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted } from 'vue';
+
+// define some props
+const props = defineProps({
+
+	// the toast manager
+	modalManager: Object
+});
+
+</script>
+<style lang="scss" scoped>
+
+	// the full layer
+	.modalLayer {
+
+		// fill the screen
+		position: fixed;
+		inset: 0px 0px 0px 0px;
+
+		// blur the background
+		// background: rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(5px);
+
+		// animate blur and opacity in
+		opacity: 0.0;
+		backdrop-filter: blur(0px);
+		transition: opacity 0.5s, backdrop-filter 0.5s;
+
+		// no pointer events if hidden (by default)
+		pointer-events: none;
+
+		// blue & fade in
+		&.show {
+
+			opacity: 1.0;
+			backdrop-filter: blur(5px);
+			pointer-events: initial;
+
+			.modalBody {
+				transform: translate(-50%, -50%) scale(1.0);
+			}
+		}
+
+		// the box that slides in & out
+		.modalBody {
+
+			// fixed force top center
+			position: fixed;
+
+			// force center
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%) scale(0.0);
+
+			// animate in when we're visible
+			transition: transform 0.5s;
+
+			// size and padding
+			width: 450px;
+			height: 300px;
+			padding: 10px;
+
+			// rounded transparent box
+			border-radius: 15px;
+			background: rgba(0, 0, 0, 0.7);
+			backdrop-filter: blur(10px);
+
+			// text settings
+			color: #EFEFEF;
+			font-size: 32px;
+			text-align: center;
+
+			// the title of the modal
+			.modalTitle {
+
+				// text settings
+				color: rgb(23, 212, 241);
+				margin-bottom: 20px;
+				border-bottom: rgb(23, 212, 241) 2px solid;
+
+				// vertical gradient that fades towards teh top
+				background: linear-gradient(0deg, rgba(23, 212, 241,0.2) 0%, rgba(23, 212, 241,0.05) 100%);
+				border-radius: 12px 12px 0px 0px;
+
+			}// .modalTitle
+
+			// the main message text
+			.modalMessage {
+
+				// text settings
+				margin-top: 20px;
+
+			}// .modalMessage
+
+			// the row on the bottom with the modal button
+			.closeButtonRow {
+
+				position: absolute;
+				inset: auto 0px 0px 0px;
+				height: 40px;
+
+				padding: 6px 10px;
+
+				// button stuck on right
+				button {
+
+					// stack on right
+					float: right;
+
+                    display: inline-block;
+                    outline: none;
+                    cursor: pointer;
+
+					// rounded box style
+					background: #00c2ee;
+					border-radius: 3px;
+                    padding: 0 16px;
+                    border-radius: 8px;
+					height: 36px;
+					min-width: 64px;
+                    border: none;
+					box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
+                    transition: box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1);
+
+					// text settings
+                    font-weight: 500;
+                    color: #fff;
+                    line-height: 1.15;
+                    font-size: 14px;
+                    word-spacing: 0px;
+                    letter-spacing: .0892857143em;
+                    text-decoration: none;
+                    text-transform: uppercase;
+                    text-align: center;
+
+                    &:hover {
+                        background: #49deff;
+                        box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%), 0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+                    }
+
+				}
+
+			}// .closeButtonRow
+
+		}// .toastBody
+
+	}//.modalLayer
+
+
+</style>
+
+
+================================================================================
+File: src\components\ThreeSceneLayer.vue
+================================================================================
+<!--
+	ThreeScene.vue
+	--------------
+
+	This is where we'll mount our ThreeJS scene and render our 3D content.
+-->
+<template>
+
+	<!-- the main wrapper that we'll eventually just mount the ThreeJS Canvas in once we're ready -->
+	<div
+		ref="sceneWrapper"
+		class="threeSceneWrapper"
+	>
+	</div>
+
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted } from 'vue';
+
+// reference to the element that we'll mount the scene to
+const sceneWrapper = ref(null);
+
+// define some props
+const props = defineProps({
+
+	// the scene object
+	scene: Object,
+
+});
+
+
+// when the component mounts we'll mount the threeJS scene to the sceneWrapper
+onMounted(() => {
+
+	// make sure we have a scene
+	if (!props.scene) return;
+
+	// for e-z access we'll add it to the window for debugging
+	window.s = props.scene;
+
+	// mount the scene to the sceneWrapper
+	props.scene.mountSceneToDOM(sceneWrapper.value);
+
+});
+
+
+</script>
+<style lang="scss" scoped>
+
+	// fill screen space
+	.threeSceneWrapper {
+
+		// fill screen space
+		position: fixed;
+		inset: 0px 0px 0px 0px;
+
+	}// .threeSceneWrapper
+
+</style>
+
+
+================================================================================
+File: src\components\ToastMsg.vue
+================================================================================
+<!--
+	ToastMsg.vue
+	------------
+
+	The toast popup message
+-->
+<template>
+
+	<!-- outermost body wrapper of the toast message -->
+	<div
+		class="toastBody"
+		:class="{ show: props.toastManager.showToast.value }"
+	>
+
+		<!-- the optional title for the toast -->
+		<div
+			v-if="props.toastManager.currentMessage.value.title!=''"
+			class="toastTitle"
+		>
+			{{ props.toastManager.currentMessage.value.title }}
+		</div>
+
+		<!-- the main message text -->
+		<div class="toastMessage">
+			{{ props.toastManager.currentMessage.value.message }}
+		</div>
+
+	</div>
+
+</template>
+<script setup>
+
+// vue
+import { ref, onMounted } from 'vue';
+
+// define some props
+const props = defineProps({
+
+	// the toast manager
+	toastManager: Object
+});
+
+</script>
+<style lang="scss" scoped>
+
+	// the box that slides in & out
+	.toastBody {
+
+		// fixed force top center
+		position: fixed;
+		left: 50%;
+		top: -100px;
+		transform: translateX(-50%);
+
+		// animate in when we're visible
+		transition: top 0.5s;
+		&.show {
+			top: 20px;
+		}
+
+		// size and padding
+		width: 300px;
+		padding: 20px;
+
+		// rounded transparent box
+		border: 3px solid rgba(255, 255, 255, 0.5);
+		border-radius: 15px;
+		background: rgba(0, 0, 0, 0.1);
+		backdrop-filter: blur(10px);
+
+		// text settings
+		color: #EFEFEF;
+		font-size: 18px;
+		text-align: center;
+
+	}// .toastBody
+
+</style>
+
+
+================================================================================
+File: src\main.js
+================================================================================
+/*
+	Main.js
+	-------
+
+	Main JavaScript entry point for the app, to load & mount the App.vue component
+*/
+import { createApp } from 'vue';
+import App from './App.vue';
+
+// import the styles
+import './assets/style.css';
+
+createApp(App).mount('#app');
+
+
+================================================================================
+File: vite.config.js
+================================================================================
+import { fileURLToPath, URL } from 'node:url';
+
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import vueDevTools from 'vite-plugin-vue-devtools';
+
+// https://vite.dev/config/
+export default defineConfig({
+	base: '',
+	plugins: [
+		vue(),
+		vueDevTools(),
+	],
+	resolve: {
+		alias: {
+			'@': fileURLToPath(new URL('./src', import.meta.url))
+		},
+	},
+});
