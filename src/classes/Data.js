@@ -214,7 +214,8 @@ export const levels = {
 		cats: cats2025, // Same cats, but they need to exist in the new GLB!
 		quotes: [
 			// ... ADD YOUR NEW 2025 QUOTES HERE ...
-			{ from: 'Reli', text: 'Yo quiero Taco Bell', force_first: true, },
+			{ from: 'Orokro', text: 'Did you PAY for all that Taco Bell though?', force_first: true, },
+			{ from: 'Reli', text: 'Yo quiero Taco Bell' },
 			{ from: 'Community', text: 'New year new scuff' },
 			{
 				from: 'Orokro',
@@ -359,69 +360,3 @@ export const levels = {
 		]
 	}
 };
-
-
-// the list of cats, including their 3D object names
-export const cats = [
-	{
-		name: 'Cookie',
-		icon: '01_cookie.png',
-		object: 'Cookie',
-	},
-	{
-		name: 'Front',
-		icon: '12_front.png',
-		object: 'FrontKitteh',
-	},
-	{
-		name: 'Chimney',
-		icon: '02_chimney.png',
-		object: 'ChimneyKitteh',
-	},
-	{
-		name: 'Trash',
-		icon: '03_trash.png',
-		object: 'TrashKitteh',
-	},
-	{
-		name: 'Fence',
-		icon: '04_fence.png',
-		object: 'FenceKitteh',
-	},
-	{
-		name: 'Window',
-		icon: '05_window.png',
-		object: 'WindowKitteh',
-	},
-	{
-		name: 'Ladder',
-		icon: '06_ladder.png',
-		object: 'LadderKitteh',
-	},
-	{
-		name: 'Truck',
-		icon: '07_truck.png',
-		object: 'TruckKitteh',
-	},
-	{
-		name: 'Front Door',
-		icon: '08_front_door.png',
-		object: 'FrontDoorKitteh',
-	},
-	{
-		name: 'Upper Tree Kitteh',
-		icon: '09_tree_upper.png',
-		object: 'TopTreeKitteh',
-	},
-	{
-		name: 'Under Tree Kitteh',
-		icon: '10_tree_lower.png',
-		object: 'UnderTreeKitteh',
-	},
-	{
-		name: 'Mailbox',
-		icon: '11_mailbox.png',
-		object: 'MailKitteh',
-	},
-];
-

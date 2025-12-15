@@ -16,7 +16,7 @@ import PresentUnboxing from './PresentUnboxing';
 import CapsuleAnimator from './CapsuleAnimator';
 import PullCameraAnimator from './PullCameraAnimator';
 // import our data
-import { cats, levels } from './Data';
+import { levels } from './Data';
 
 // main export
 export class Game {
@@ -301,8 +301,11 @@ export class Game {
 
 			if (catObjectName) {
 				catObjectName = catObjectName.split(' ')[0].replace('#', '').toLowerCase();
-				if (cats.find(cat => cat.object.toLowerCase() === catObjectName))
+				const currentLevelCats = this.currentLevelData.value.cats;
+
+				if (currentLevelCats.find(cat => cat.object.toLowerCase() === catObjectName)) {
 					this.findCat(catObjectName);
+				}
 			}
 		});
 	}
@@ -358,7 +361,7 @@ export class Game {
 		this.playSound('assets/sfx/meow.mp3');
 
 		// Logic for adding pulls
-		const totalQuotes = gatchaQuotes.length;
+		const totalQuotes = levels[this.currentLevelKey.value].quotes.length;
 		let pullsToAdd = Math.floor(totalQuotes / 12);
 		this.gatchaPulls.value += pullsToAdd;
 
